@@ -35,11 +35,17 @@
       <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
       <a href="index.html#playground" class="hover:text-ink dark:hover:text-paper">Playground</a>
     </nav>
-    <button id="theme-toggle" type="button" aria-label="Toggle theme"
-            class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-      <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
-      <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
-    </button>
+    <div class="flex items-center gap-1">
+      <a href="https://github.com/TarikTz/openapi2code" target="_blank" rel="noopener" aria-label="View source on GitHub"
+         class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <i data-lucide="github" class="w-5 h-5"></i>
+      </a>
+      <button id="theme-toggle" type="button" aria-label="Toggle theme"
+              class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
+        <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+      </button>
+    </div>
   </header>
 
   <main class="max-w-2xl mx-auto px-6 py-16 flex flex-col gap-10">
@@ -55,7 +61,7 @@
       <h2 class="font-mono text-xl font-medium tracking-tight">Bugs and feature requests</h2>
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
         The best place for these is the project's issue tracker on
-        GitHub: <span class="font-mono text-sm bg-ink/5 dark:bg-paper/10 px-1.5 py-0.5 rounded-sm">[GITHUB REPO URL — fill in before publishing]</span>.
+        GitHub: <a href="https://github.com/TarikTz/openapi2code/issues" class="font-mono text-sm bg-ink/5 dark:bg-paper/10 px-1.5 py-0.5 rounded-sm hover:bg-ink/10 dark:hover:bg-paper/20">github.com/TarikTz/openapi2code</a>.
         Include the spec (or a minimal snippet that reproduces the issue)
         and the target language you generated.
       </p>
@@ -64,7 +70,7 @@
     <div class="flex flex-col gap-3 border-l-2 pl-5" style="border-left-color: #F0684A">
       <h2 class="font-mono text-xl font-medium tracking-tight">Everything else</h2>
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-        Email: <span class="font-mono text-sm bg-ink/5 dark:bg-paper/10 px-1.5 py-0.5 rounded-sm">[CONTACT EMAIL — fill in before publishing]</span>
+        Email: <a href="mailto:tarik.omercehajic@gmail.com" class="font-mono text-sm bg-ink/5 dark:bg-paper/10 px-1.5 py-0.5 rounded-sm hover:bg-ink/10 dark:hover:bg-paper/20">tarik.omercehajic@gmail.com</a>
       </p>
     </div>
   </main>
@@ -78,6 +84,9 @@
         <a href="contact.html" class="hover:text-ink dark:hover:text-paper">Contact</a>
         <a href="privacy.html" class="hover:text-ink dark:hover:text-paper">Privacy</a>
         <a href="terms.html" class="hover:text-ink dark:hover:text-paper">Terms</a>
+        <a href="https://github.com/TarikTz/openapi2code" target="_blank" rel="noopener" aria-label="GitHub" class="hover:text-ink dark:hover:text-paper">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </a>
       </nav>
     </div>
   </footer>

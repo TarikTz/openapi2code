@@ -83,11 +83,17 @@
       <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
       <a href="#playground" class="hover:text-ink dark:hover:text-paper">Playground</a>
     </nav>
-    <button id="theme-toggle" type="button" aria-label="Toggle theme"
-            class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-      <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
-      <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
-    </button>
+    <div class="flex items-center gap-1">
+      <a href="https://github.com/TarikTz/openapi2code" target="_blank" rel="noopener" aria-label="View source on GitHub"
+         class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <i data-lucide="github" class="w-5 h-5"></i>
+      </a>
+      <button id="theme-toggle" type="button" aria-label="Toggle theme"
+              class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
+        <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+      </button>
+    </div>
   </header>
 
   <!-- Hero: the product's whole idea in one glance — a spec's braces
@@ -319,6 +325,9 @@
         <a href="contact.html" class="hover:text-ink dark:hover:text-paper">Contact</a>
         <a href="privacy.html" class="hover:text-ink dark:hover:text-paper">Privacy</a>
         <a href="terms.html" class="hover:text-ink dark:hover:text-paper">Terms</a>
+        <a href="https://github.com/TarikTz/openapi2code" target="_blank" rel="noopener" aria-label="GitHub" class="hover:text-ink dark:hover:text-paper">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </a>
       </nav>
     </div>
   </footer>
