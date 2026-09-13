@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-Every sub-project on the original roadmap is complete: 1 (core engine + TypeScript generator, `pkg/engine`), 2 (CLI, `cmd/openapi2code` + `internal/cli`), 3a (Zod generator, `--target zod`), 4 (WASM build, `internal/wasmapi` + `cmd/wasm`), 5 (the browser playground, `web/`), and 6 (Swift/Kotlin/Dart generators, `internal/gen/swift`, `internal/gen/kotlin`, `internal/gen/dart`). `additionalProperties` (dictionary/map-shaped fields, `ir.KindMap`) is supported across all five targets, and `--target` accepts a comma-separated list to generate several in one run, both as of the post-roadmap hardening pass. oneOf/anyOf support for the mobile targets, `additionalProperties: true` (no value schema), and a schema mixing fixed properties with `additionalProperties` remain as deferred follow-ups — see `docs/superpowers/specs/2026-09-10-future-considerations.md`. Build/test: `go build ./...`, `go vet ./...`, `go test ./...`, plus `./web/test.sh` for the WASM/playground pieces `go test` can't reach. Read `PRD.md` in full before starting implementation; it is the source of truth for scope and behavior. Before brainstorming a new sub-project, check `docs/superpowers/specs/2026-09-10-future-considerations.md` for deferred scope ideas that may now be relevant.
+Every sub-project on the original roadmap is complete: 1 (core engine + TypeScript generator, `pkg/engine`), 2 (CLI, `cmd/openapi2code` + `internal/cli`), 3a (Zod generator, `--target zod`), 4 (WASM build, `internal/wasmapi` + `cmd/wasm`), 5 (the browser playground, `web/`), and 6 (Swift/Kotlin/Dart generators, `internal/gen/swift`, `internal/gen/kotlin`, `internal/gen/dart`). `additionalProperties` (dictionary/map-shaped fields, `ir.KindMap`) is supported across all five targets, and `--target` accepts a comma-separated list to generate several in one run, both as of the post-roadmap hardening pass. oneOf/anyOf support for the mobile targets, `additionalProperties: true` (no value schema), and a schema mixing fixed properties with `additionalProperties` remain as deferred follow-ups. Build/test: `go build ./...`, `go vet ./...`, `go test ./...`, plus `./web/test.sh` for the WASM/playground pieces `go test` can't reach.
+
+`PRD.md` and `docs/` (design specs, implementation plans, deferred-scope notes) are gitignored local planning artifacts, not part of the public repo — present on this machine but not in a fresh clone. Read `PRD.md` in full before starting implementation if it's present; it's the source of truth for scope and behavior.
 
 ## Product summary
 
@@ -15,7 +17,7 @@ Every sub-project on the original roadmap is complete: 1 (core engine + TypeScri
 
 Generation targets: TypeScript interfaces, Zod runtime validation schemas, and native mobile models (Swift `Codable` structs, Kotlin `data class`, Dart classes).
 
-## Architecture constraints (per PRD, apply from the first commit)
+## Architecture constraints (apply from the first commit)
 
 - **One core engine, two frontends.** The parsing/codegen logic in the Go core must be platform-agnostic — no dependency that only works in a CLI process (e.g. filesystem/network assumptions baked into core logic) or only in a browser. The CLI and the WASM build are thin wrappers around the same engine code; source-fetching (file/string/URL) should be injected/abstracted so the WASM build can supply browser-appropriate fetch behavior.
 - **Zero-dependency footprint is a stated goal.** Prefer the Go standard library for parsing and codegen; justify any third-party dependency against the "single static binary" / WASM-size goals before adding it.

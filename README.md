@@ -8,7 +8,7 @@ Turn an OpenAPI or Swagger spec into typed TypeScript, Zod, Swift, Kotlin, and D
 
 **[Try it live at openapi2code.com →](https://openapi2code.com/)** — paste a spec, get code; nothing you paste ever leaves your browser.
 
-See [PRD.md](PRD.md) for the full product vision and [Claude.md](Claude.md) for architecture notes.
+See [Claude.md](Claude.md) for architecture notes.
 
 ## Features
 
@@ -28,11 +28,11 @@ What works today:
 - Full support for `allOf` (interface extension / intersection fallback), `oneOf`/`anyOf` (unions), enums, arrays, `additionalProperties` (dictionary/map-shaped fields), nullable vs. optional fields, and circular schema references
 - Generates TypeScript interfaces, either as one file per model with a barrel `index.ts` (modular) or as a single file (monolithic)
 - Generates Zod v3 validation schemas in the same two layouts, with `z.lazy()`/`z.ZodType<T>` for circular schemas. Generated files `import { z } from "zod"`, so `zod` needs to be a dependency of the *consuming* project — this repo itself stays dependency-free, since it only ever emits schema source text.
-- Generates native mobile models: Swift `Codable` structs (classes for cyclic models), Kotlin data classes, and Dart classes — each with hand-written JSON (de)serialization requiring no consumer dependency, idiomatic camelCase field names with an explicit wire-name mapping back to the original JSON key, and a synthesized named type for any inline (non-`$ref`) enum or object a field resolves to. `oneOf`/`anyOf` and allOf's non-object-member fallback are not yet supported for these three targets (see `docs/superpowers/specs/2026-09-10-future-considerations.md`) — an affected model or field is skipped with a comment rather than generated incorrectly.
+- Generates native mobile models: Swift `Codable` structs (classes for cyclic models), Kotlin data classes, and Dart classes — each with hand-written JSON (de)serialization requiring no consumer dependency, idiomatic camelCase field names with an explicit wire-name mapping back to the original JSON key, and a synthesized named type for any inline (non-`$ref`) enum or object a field resolves to. `oneOf`/`anyOf` and allOf's non-object-member fallback are not yet supported for these three targets — an affected model or field is skipped with a comment rather than generated incorrectly.
 - Compiles unchanged to WebAssembly, so the same engine parses and generates entirely client-side in a browser, with no server round-trip — see the playground in `web/`
 - Guards against pathologically deep intra-schema nesting (500+ levels) with a clean error, instead of overflowing the call stack — most likely to matter in the browser, where the JS engine's stack is far smaller than a native Go binary's
 
-`additionalProperties: true` (no value schema) and a schema mixing fixed `properties` with `additionalProperties` are both deliberately out of scope for now — see `docs/superpowers/specs/2026-09-10-future-considerations.md` for why.
+`additionalProperties: true` (no value schema) and a schema mixing fixed `properties` with `additionalProperties` are both deliberately out of scope for now.
 
 ## Requirements
 
@@ -223,12 +223,11 @@ cmd/openapi2code/ The openapi2code binary's entrypoint — a thin wrapper around
 internal/wasmapi/ Pure-Go generation dispatch for the WASM build (no syscall/js, normal tests)
 cmd/wasm/         The js/wasm entrypoint — a thin syscall/js bridge over internal/wasmapi
 web/              The website: the WASM playground, its use-cases/examples/legal pages, and their build and test scripts
-docs/             Design specs and implementation plans for each sub-project
 ```
 
 ## Development
 
-Project and architecture conventions live in [Claude.md](Claude.md). Design specs and implementation plans for completed and upcoming sub-projects are under [docs/superpowers/specs/](docs/superpowers/specs/) and [docs/superpowers/plans/](docs/superpowers/plans/).
+Project and architecture conventions live in [Claude.md](Claude.md).
 
 ## License
 
