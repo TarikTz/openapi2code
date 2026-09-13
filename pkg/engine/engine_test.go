@@ -262,6 +262,66 @@ func TestParseAndGenerateTS_Monolithic(t *testing.T) {
 	}
 }
 
+// TestParseAndGenerateTS_OpenAPI31NullableTypeArrayMatchesV3Nullable proves
+// the actual point of OpenAPI 3.1 support end to end: a 3.1 document using
+// `type: ["string", "null"]` (3.1 dropped the `nullable` keyword in favor
+// of this JSON Schema 2020-12 form) must generate byte-identical TS to the
+// equivalent 3.0 document using `type: "string", nullable: true` — proof
+// that internal/spec's UnmarshalJSON normalization means nothing past
+// RawSchema needs to know 3.1 exists at all.
+func TestParseAndGenerateTS_OpenAPI31NullableTypeArrayMatchesV3Nullable(t *testing.T) {
+	const v30Spec = `{
+	  "openapi": "3.0.3",
+	  "components": {
+	    "schemas": {
+	      "Pet": {
+	        "type": "object",
+	        "properties": {
+	          "name": {"type": "string", "nullable": true}
+	        },
+	        "required": ["name"]
+	      }
+	    }
+	  }
+	}`
+	const v31Spec = `{
+	  "openapi": "3.1.0",
+	  "components": {
+	    "schemas": {
+	      "Pet": {
+	        "type": "object",
+	        "properties": {
+	          "name": {"type": ["string", "null"]}
+	        },
+	        "required": ["name"]
+	      }
+	    }
+	  }
+	}`
+
+	genTS := func(spec string) string {
+		t.Helper()
+		doc, err := engine.Parse([]byte(spec))
+		if err != nil {
+			t.Fatalf("Parse: %v", err)
+		}
+		out, err := engine.GenerateTS(doc, engine.TSOptions{Modular: false})
+		if err != nil {
+			t.Fatalf("GenerateTS: %v", err)
+		}
+		return out.Files["index.ts"]
+	}
+
+	v30Output := genTS(v30Spec)
+	v31Output := genTS(v31Spec)
+	if v30Output != v31Output {
+		t.Errorf("expected identical output, got:\n--- 3.0 (nullable keyword) ---\n%s\n--- 3.1 (type array) ---\n%s", v30Output, v31Output)
+	}
+	if !strings.Contains(v31Output, "name: string | null") {
+		t.Errorf("expected a required, nullable string field, got:\n%s", v31Output)
+	}
+}
+
 func TestGenerateTS_Modular(t *testing.T) {
 	doc, err := engine.Parse([]byte(twoModelSpec))
 	if err != nil {

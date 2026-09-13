@@ -8,11 +8,9 @@ Turn an OpenAPI or Swagger spec into typed TypeScript, Zod, Swift, Kotlin, and D
 
 **[Try it live at openapi2code.com →](https://openapi2code.com/)** — paste a spec, get code; nothing you paste ever leaves your browser.
 
-See [Claude.md](Claude.md) for architecture notes.
-
 ## Features
 
-- Parses OpenAPI 3.0 and Swagger 2.0, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin
+- Parses OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin
 - Full `$ref`, `allOf`/`oneOf`/`anyOf`, enum, array, `additionalProperties`, nullable/optional, and circular-reference support
 - Generates TypeScript, Zod v3, Swift, Kotlin, and Dart — one target or several in a single run, modular or monolithic
 - Runs as a CLI, a Go library, or entirely client-side in the browser via WebAssembly
@@ -23,7 +21,7 @@ See [Claude.md](Claude.md) for architecture notes.
 Every planned target is implemented and tested — TypeScript, Zod v3, Swift, Kotlin, and Dart, generated from one shared intermediate representation so they can't drift out of sync with each other. Use the `openapi2code` CLI binary (see [CLI usage](#cli-usage)), import `pkg/engine` directly into your own Go code (see [Library usage](#library-usage)), or run the engine client-side in a browser (see [WASM build and playground](#wasm-build-and-playground)).
 
 What works today:
-- Parses OpenAPI 3.0 and Swagger 2.0 documents, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin
+- Parses OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0 documents, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin. OpenAPI 3.1 dropped the `nullable` keyword in favor of JSON Schema's `type: [T, "null"]`; this is normalized during parsing into the exact same shape `nullable: true` produces, so every generator sees one uniform representation regardless of which OpenAPI version a field's nullability came from.
 - Resolves internal `$ref`s (`#/components/schemas/*`, `#/definitions/*`)
 - Full support for `allOf` (interface extension / intersection fallback), `oneOf`/`anyOf` (unions), enums, arrays, `additionalProperties` (dictionary/map-shaped fields), nullable vs. optional fields, and circular schema references
 - Generates TypeScript interfaces, either as one file per model with a barrel `index.ts` (modular) or as a single file (monolithic)

@@ -920,3 +920,32 @@ func TestBuild_NilAllOfMemberSchemaErrors(t *testing.T) {
 		t.Fatal("expected an error for a nil allOf member schema, got nil")
 	}
 }
+
+func TestBuild_TypeUnrepresentableFieldBecomesPrimitiveUnknown(t *testing.T) {
+	// Mirrors what spec.RawSchema's UnmarshalJSON sets for an OpenAPI
+	// 3.1-style `type: ["string", "integer"]` (or `["null"]`) field: no
+	// single generated type applies, so buildNode should skip it the
+	// same way it already skips any other unrecognized primitive.
+	raw := &spec.RawDocument{
+		Schemas: map[string]*spec.RawSchema{
+			"Weird": {
+				Type: "object",
+				Properties: map[string]*spec.RawSchema{
+					"multi": {TypeUnrepresentable: true},
+				},
+			},
+		},
+	}
+	doc, err := ir.Build(raw)
+	if err != nil {
+		t.Fatalf("Build: %v", err)
+	}
+	obj := doc.Models[0].Type.Object
+	if len(obj.Fields) != 1 {
+		t.Fatalf("expected 1 field, got %d", len(obj.Fields))
+	}
+	field := obj.Fields[0]
+	if field.Type.Kind != ir.KindPrimitive || field.Type.Primitive != ir.PrimitiveUnknown {
+		t.Errorf("got kind %v primitive %v, want KindPrimitive/PrimitiveUnknown", field.Type.Kind, field.Type.Primitive)
+	}
+}

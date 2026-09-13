@@ -107,16 +107,26 @@ func TestDetectVersion_V2(t *testing.T) {
 	}
 }
 
-func TestDetectVersion_V31Rejected(t *testing.T) {
-	_, err := DetectVersion([]byte(`{"openapi":"3.1.0"}`))
-	if err == nil {
-		t.Fatal("expected error for OpenAPI 3.1, got nil")
+func TestDetectVersion_V31(t *testing.T) {
+	version, err := DetectVersion([]byte(`{"openapi":"3.1.0"}`))
+	if err != nil {
+		t.Fatalf("DetectVersion: %v", err)
 	}
-	if !strings.Contains(err.Error(), "3.1") {
-		t.Errorf("expected an error naming 3.1 specifically, got %q", err)
+	if version != VersionV3 {
+		t.Errorf("got %v, want VersionV3", version)
+	}
+}
+
+func TestDetectVersion_V32Rejected(t *testing.T) {
+	_, err := DetectVersion([]byte(`{"openapi":"3.2.0"}`))
+	if err == nil {
+		t.Fatal("expected error for OpenAPI 3.2, got nil")
+	}
+	if !strings.Contains(err.Error(), "3.2") {
+		t.Errorf("expected an error naming 3.2 specifically, got %q", err)
 	}
 	if strings.Contains(err.Error(), "missing or unrecognized") {
-		t.Errorf("expected a 3.1-specific error, got the generic one: %q", err)
+		t.Errorf("expected a 3.2-specific error, got the generic one: %q", err)
 	}
 }
 

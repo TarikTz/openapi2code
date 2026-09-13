@@ -76,20 +76,25 @@ type versionProbe struct {
 
 // DetectVersion inspects the top-level "openapi" or "swagger" field of a
 // normalized JSON document to determine which spec version it uses.
-// Only OpenAPI 3.0.x and Swagger 2.0 are supported: OpenAPI 3.1+ changes
-// schema semantics (notably `type: [T, "null"]` in place of `nullable`)
-// in ways this parser does not model, so it is rejected explicitly rather
-// than accepted and failed confusingly further downstream.
+// OpenAPI 3.0.x and 3.1.x both map to VersionV3: the document-level shape
+// (components.schemas) is identical between the two, and the one schema-
+// level difference that matters — 3.1 dropping `nullable` in favor of
+// `type: [T, "null"]` — is normalized away in RawSchema's own
+// UnmarshalJSON (see schema.go), so nothing downstream of DetectVersion
+// needs to know which of the two it's looking at. Anything past 3.1 is
+// rejected explicitly rather than accepted and failed confusingly
+// further downstream, since a future minor could change schema semantics
+// again in ways this parser doesn't model yet.
 func DetectVersion(jsonData []byte) (Version, error) {
 	var probe versionProbe
 	if err := json.Unmarshal(jsonData, &probe); err != nil {
 		return VersionUnknown, fmt.Errorf("detect spec version: %w", err)
 	}
 	switch {
-	case strings.HasPrefix(probe.OpenAPI, "3.0"):
+	case strings.HasPrefix(probe.OpenAPI, "3.0"), strings.HasPrefix(probe.OpenAPI, "3.1"):
 		return VersionV3, nil
 	case strings.HasPrefix(probe.OpenAPI, "3."):
-		return VersionUnknown, fmt.Errorf("detect spec version: OpenAPI 3.1+ is not yet supported (only 3.0.x and Swagger 2.0)")
+		return VersionUnknown, fmt.Errorf("detect spec version: OpenAPI %s is not yet supported (only 3.0.x, 3.1.x, and Swagger 2.0)", probe.OpenAPI)
 	case probe.Swagger == "2.0":
 		return VersionV2, nil
 	default:

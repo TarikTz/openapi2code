@@ -66,6 +66,9 @@ func buildNode(raw *spec.RawDocument, s *spec.RawSchema, depth int) (*Node, erro
 	if len(s.Enum) > 0 {
 		return buildEnumNode(s), nil
 	}
+	if s.TypeUnrepresentable {
+		return &Node{Kind: KindPrimitive, Primitive: PrimitiveUnknown}, nil
+	}
 	switch s.Type {
 	case "array":
 		return buildArrayNode(raw, s, depth)
