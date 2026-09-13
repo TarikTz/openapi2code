@@ -19,7 +19,8 @@ if (window.lucide) {
 }
 
 const specInput = document.getElementById("spec-input");
-const exampleButtons = document.getElementById("example-buttons");
+const examplesButton = document.getElementById("examples-button");
+const examplesMenu = document.getElementById("examples-menu");
 const targetSelect = document.getElementById("target-select");
 const modularToggle = document.getElementById("modular-toggle");
 const urlInput = document.getElementById("url-input");
@@ -66,28 +67,62 @@ function setControlsEnabled(enabled) {
   modularToggle.disabled = !enabled;
   urlInput.disabled = !enabled;
   urlFetchButton.disabled = !enabled;
-  for (const button of exampleButtons.querySelectorAll("button")) {
-    button.disabled = !enabled;
-  }
+  examplesButton.disabled = !enabled;
 }
 
 // --- Example gallery ---
 
+function closeExamplesMenu() {
+  examplesMenu.hidden = true;
+  examplesButton.setAttribute("aria-expanded", "false");
+}
+
+function openExamplesMenu() {
+  examplesMenu.hidden = false;
+  examplesButton.setAttribute("aria-expanded", "true");
+}
+
 function renderExampleButtons() {
   for (const example of EXAMPLES) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = example.label;
-    button.disabled = true;
-    button.className =
-      "shrink-0 whitespace-nowrap rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light";
-    button.addEventListener("click", () => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.setAttribute("role", "menuitem");
+    item.className =
+      "flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light";
+    item.innerHTML = `
+      <span class="font-mono text-sm">${example.label}</span>
+      <span class="text-xs text-ink/60 dark:text-paper/60">${example.description}</span>
+    `;
+    item.addEventListener("click", () => {
       specInput.value = example.spec;
       generate();
+      closeExamplesMenu();
+      examplesButton.focus();
     });
-    exampleButtons.appendChild(button);
+    examplesMenu.appendChild(item);
   }
 }
+
+examplesButton.addEventListener("click", () => {
+  if (examplesMenu.hidden) {
+    openExamplesMenu();
+  } else {
+    closeExamplesMenu();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (!examplesMenu.hidden && !examplesMenu.contains(event.target) && event.target !== examplesButton) {
+    closeExamplesMenu();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !examplesMenu.hidden) {
+    closeExamplesMenu();
+    examplesButton.focus();
+  }
+});
 
 // --- Generation ---
 

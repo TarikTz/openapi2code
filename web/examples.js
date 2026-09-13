@@ -8,6 +8,7 @@ export const EXAMPLES = [
   {
     id: "petstore",
     label: "Petstore (OpenAPI 3.0)",
+    description: "Nested objects, arrays, $ref, and enums",
     spec: `openapi: "3.0.3"
 info:
   title: Petstore-style fixture
@@ -73,6 +74,7 @@ components:
   {
     id: "swagger2",
     label: "Petstore (Swagger 2.0)",
+    description: "Same models, older Swagger 2.0 syntax",
     spec: `swagger: "2.0"
 info:
   title: Petstore-style fixture (Swagger 2.0)
@@ -141,6 +143,7 @@ definitions:
   {
     id: "circular",
     label: "Circular references",
+    description: "Self-referencing and mutually-referencing types",
     spec: `openapi: "3.0.3"
 info:
   title: Circular fixture
@@ -173,6 +176,7 @@ components:
   {
     id: "composition",
     label: "allOf / oneOf / anyOf",
+    description: "Schema composition: merged, union, and either-of types",
     spec: `openapi: "3.0.3"
 info:
   title: Composition fixture

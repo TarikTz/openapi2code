@@ -159,9 +159,17 @@
   </section>
 
   <main id="playground" class="max-w-6xl mx-auto px-6 pb-16 flex flex-col gap-4">
-    <!-- One line, full width — free to run wider than either panel below it
-         (and to scroll on narrow viewports) rather than wrapping. -->
-    <div id="example-buttons" class="flex flex-nowrap gap-2 overflow-x-auto"></div>
+    <div class="relative inline-block">
+      <button id="examples-button" type="button" disabled
+              aria-haspopup="menu" aria-expanded="false"
+              class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <i data-lucide="book-open" class="w-4 h-4"></i>
+        Examples
+        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+      </button>
+      <div id="examples-menu" role="menu" hidden
+           class="absolute z-10 mt-1 w-80 max-w-[calc(100vw-3rem)] rounded-sm border border-ink/15 dark:border-paper/15 bg-paper dark:bg-ink shadow-lg overflow-hidden"></div>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <section class="flex flex-col gap-3">
