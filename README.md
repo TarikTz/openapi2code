@@ -73,7 +73,7 @@ go test ./pkg/engine/...
 
 ## CLI usage
 
-Build the binary:
+Download a prebuilt binary from [Releases](https://github.com/TarikTz/openapi2code/releases/latest), or build it yourself:
 
 ```bash
 go build -o openapi2code ./cmd/openapi2code
