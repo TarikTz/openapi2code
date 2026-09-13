@@ -1,0 +1,35 @@
+# OpenAPI2Code
+
+> A zero-dependency, multi-target code generation engine that converts
+> OpenAPI (3.0, 3.1) and Swagger (2.0) specs into typed models. Runs as a
+> single static-binary CLI, and as a WebAssembly-powered browser playground
+> that never sends the spec to a server.
+
+OpenAPI2Code generates:
+- TypeScript interfaces
+- Zod runtime validation schemas
+- Swift Codable structs
+- Kotlin data classes
+- Dart classes
+
+All targets are generated from the same intermediate representation of the
+parsed spec, so output is structurally consistent across languages. More
+than one target can be generated in a single run.
+
+## Key facts
+
+- Free and open source (MIT license).
+- The browser playground performs conversion entirely client-side (Go
+  compiled to WASM) — nothing pasted or uploaded is ever sent to a server.
+- The CLI is a single zero-dependency binary; prebuilt binaries are
+  published for macOS, Linux, and Windows.
+- Supports OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0, including circular
+  references and allOf/oneOf/anyOf composition.
+
+## Pages
+
+- [Playground](https://openapi2code.com/): paste or upload a spec and generate code live, in the browser.
+- [Use cases](https://openapi2code.com/use-cases.html): where OpenAPI2Code fits in a real workflow.
+- [Examples](https://openapi2code.com/examples.html): sample specs and their generated output across all five targets.
+- [Contact](https://openapi2code.com/contact.html): issue tracker and email contact.
+- [Source code and releases](https://github.com/TarikTz/openapi2code): CLI binaries, source, and issue tracker on GitHub.

@@ -26,11 +26,74 @@
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any (runs in the browser)",
     "description": "Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code entirely client-side, with no server round-trip.",
+    "featureList": [
+      "OpenAPI 3.0 and 3.1 support",
+      "Swagger 2.0 support",
+      "TypeScript interface generation",
+      "Zod runtime schema generation",
+      "Swift Codable struct generation",
+      "Kotlin data class generation",
+      "Dart class generation",
+      "Client-side WASM playground with no server round-trip",
+      "Zero-dependency single-binary CLI"
+    ],
+    "codeRepository": "https://github.com/TarikTz/openapi2code",
+    "sameAs": ["https://github.com/TarikTz/openapi2code"],
+    "license": "https://github.com/TarikTz/openapi2code/blob/main/LICENSE",
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
     }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Does OpenAPI2Code send my spec to a server?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. The playground runs the same Go engine as the CLI, compiled to WebAssembly, entirely in your browser. The spec you paste or upload is never sent anywhere."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which OpenAPI and Swagger versions does OpenAPI2Code support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What languages can OpenAPI2Code generate?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "TypeScript interfaces, Zod runtime validation schemas, Swift Codable structs, Kotlin data classes, and Dart classes — all from the same spec, and you can generate more than one target in a single run."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is OpenAPI2Code free and open source?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. It's MIT licensed and free to use, with the source available on GitHub."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use OpenAPI2Code from the command line?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. It ships as a single zero-dependency static binary for macOS, Linux, and Windows, downloadable from GitHub Releases, in addition to the browser playground."
+        }
+      }
+    ]
   }
   </script>
 
@@ -311,6 +374,50 @@
           Other platforms (Intel macOS, ARM Linux):
           <a href="https://github.com/TarikTz/openapi2code/releases/latest" class="underline hover:text-ink dark:hover:text-paper">see all release assets</a>.
         </p>
+      </div>
+
+      <div class="flex flex-col gap-4 max-w-2xl">
+        <h2 class="font-mono text-2xl font-medium tracking-tight">FAQ</h2>
+        <div class="flex flex-col gap-5">
+          <div>
+            <h3 class="font-medium">Does OpenAPI2Code send my spec to a server?</h3>
+            <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+              No. The playground runs the same Go engine as the CLI, compiled to
+              WebAssembly, entirely in your browser. The spec you paste or
+              upload is never sent anywhere.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-medium">Which OpenAPI and Swagger versions does OpenAPI2Code support?</h3>
+            <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+              OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-medium">What languages can OpenAPI2Code generate?</h3>
+            <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+              TypeScript interfaces, Zod runtime validation schemas, Swift
+              Codable structs, Kotlin data classes, and Dart classes — all
+              from the same spec, and you can generate more than one target
+              in a single run.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-medium">Is OpenAPI2Code free and open source?</h3>
+            <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+              Yes. It's MIT licensed and free to use, with the source
+              available on <a href="https://github.com/TarikTz/openapi2code" class="underline hover:text-ink dark:hover:text-paper">GitHub</a>.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-medium">Can I use OpenAPI2Code from the command line?</h3>
+            <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+              Yes. It ships as a single zero-dependency static binary for
+              macOS, Linux, and Windows, downloadable from GitHub Releases,
+              in addition to the browser playground.
+            </p>
+          </div>
+        </div>
       </div>
 
     </div>
