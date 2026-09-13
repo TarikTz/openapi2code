@@ -1,0 +1,64 @@
+class A {
+    final B? b;
+
+    A({
+        this.b,
+    });
+
+    factory A.fromJson(Map<String, dynamic> json) {
+        return A(
+            b: json["b"] != null ? B.fromJson(json["b"] as Map<String, dynamic>) : null,
+        );
+    }
+
+    Map<String, dynamic> toJson() {
+        return {
+            "b": b?.toJson(),
+        };
+    }
+}
+
+class B {
+    final A? a;
+
+    B({
+        this.a,
+    });
+
+    factory B.fromJson(Map<String, dynamic> json) {
+        return B(
+            a: json["a"] != null ? A.fromJson(json["a"] as Map<String, dynamic>) : null,
+        );
+    }
+
+    Map<String, dynamic> toJson() {
+        return {
+            "a": a?.toJson(),
+        };
+    }
+}
+
+class TreeNode {
+    final List<TreeNode>? children;
+    final String value;
+
+    TreeNode({
+        this.children,
+        required this.value,
+    });
+
+    factory TreeNode.fromJson(Map<String, dynamic> json) {
+        return TreeNode(
+            children: (json["children"] as List<dynamic>?)?.map((e) => TreeNode.fromJson(e as Map<String, dynamic>)).toList(),
+            value: json["value"] as String,
+        );
+    }
+
+    Map<String, dynamic> toJson() {
+        return {
+            "children": children?.map((e) => e.toJson()).toList(),
+            "value": value,
+        };
+    }
+}
+

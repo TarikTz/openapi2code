@@ -1,0 +1,55 @@
+public class A: Codable {
+    public var b: B?
+
+    enum CodingKeys: String, CodingKey {
+        case b = "b"
+    }
+
+    public init(b: B?) {
+        self.b = b
+    }
+
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.b = try container.decodeIfPresent(B.self, forKey: .b)
+    }
+}
+
+public class B: Codable {
+    public var a: A?
+
+    enum CodingKeys: String, CodingKey {
+        case a = "a"
+    }
+
+    public init(a: A?) {
+        self.a = a
+    }
+
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.a = try container.decodeIfPresent(A.self, forKey: .a)
+    }
+}
+
+public class TreeNode: Codable {
+    public var children: [TreeNode]?
+    public var value: String
+
+    enum CodingKeys: String, CodingKey {
+        case children = "children"
+        case value = "value"
+    }
+
+    public init(children: [TreeNode]?, value: String) {
+        self.children = children
+        self.value = value
+    }
+
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.children = try container.decodeIfPresent([TreeNode].self, forKey: .children)
+        self.value = try container.decode(String.self, forKey: .value)
+    }
+}
+

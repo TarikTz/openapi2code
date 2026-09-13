@@ -1,0 +1,22 @@
+public struct Animal: Codable {
+    public var name: String
+
+    enum CodingKeys: String, CodingKey {
+        case name = "name"
+    }
+}
+
+public struct Dog: Codable {
+    public var name: String
+    public var breed: String
+
+    enum CodingKeys: String, CodingKey {
+        case name = "name"
+        case breed = "breed"
+    }
+}
+
+// Pet was not generated for the Swift target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).
+
+// StringOrNumber was not generated for the Swift target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).
+

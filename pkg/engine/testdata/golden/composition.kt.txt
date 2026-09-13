@@ -1,0 +1,43 @@
+data class Animal(
+    val name: String
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["name"] = name
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Animal {
+            return Animal(
+                name = json["name"] as String
+            )
+        }
+    }
+}
+
+data class Dog(
+    val name: String,
+    val breed: String
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["name"] = name
+        map["breed"] = breed
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Dog {
+            return Dog(
+                name = json["name"] as String,
+                breed = json["breed"] as String
+            )
+        }
+    }
+}
+
+// Pet was not generated for the Kotlin target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).
+
+// StringOrNumber was not generated for the Kotlin target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).
+

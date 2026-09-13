@@ -1,0 +1,18 @@
+openapi: "3.0.3"
+info:
+  title: AllOf-extends cycle fixture
+  version: "1.0.0"
+components:
+  schemas:
+    A:
+      allOf:
+        - $ref: "#/components/schemas/B"
+        - type: object
+          properties:
+            extra:
+              type: string
+    B:
+      type: object
+      properties:
+        a:
+          $ref: "#/components/schemas/A"

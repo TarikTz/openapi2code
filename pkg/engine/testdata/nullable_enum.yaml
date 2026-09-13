@@ -1,0 +1,29 @@
+openapi: "3.0.3"
+info:
+  title: Nullable and enum fixture
+  version: "1.0.0"
+components:
+  schemas:
+    Status:
+      type: string
+      enum:
+        - active
+        - inactive
+        - pending
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: "#/components/schemas/Status"
+        nickname:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+      required:
+        - id
+        - status
+        - note

@@ -1,0 +1,106 @@
+data class Category(
+    val id: Int? = null,
+    val name: String
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["id"] = id
+        map["name"] = name
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Category {
+            return Category(
+                id = (json["id"] as? Number)?.toInt(),
+                name = json["name"] as String
+            )
+        }
+    }
+}
+
+data class Error(
+    val code: Int,
+    val message: String
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["code"] = code
+        map["message"] = message
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Error {
+            return Error(
+                code = (json["code"] as Number).toInt(),
+                message = json["message"] as String
+            )
+        }
+    }
+}
+
+data class Pet(
+    val category: Category? = null,
+    val id: Int? = null,
+    val name: String,
+    val photoUrls: List<String>,
+    val status: PetStatus? = null,
+    val tags: List<Tag>? = null
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["category"] = category?.toJson()
+        map["id"] = id
+        map["name"] = name
+        map["photoUrls"] = photoUrls.map { it }
+        map["status"] = status?.value
+        map["tags"] = tags?.map { it.toJson() }
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Pet {
+            return Pet(
+                category = (json["category"] as? Map<String, Any?>)?.let { Category.fromJson(it) },
+                id = (json["id"] as? Number)?.toInt(),
+                name = json["name"] as String,
+                photoUrls = (json["photoUrls"] as List<*>).map { it as String },
+                status = (json["status"] as? String)?.let { PetStatus.fromValue(it) },
+                tags = (json["tags"] as? List<*>)?.map { Tag.fromJson(it as Map<String, Any?>) }
+            )
+        }
+    }
+}
+
+data class Tag(
+    val id: Int? = null,
+    val name: String
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["id"] = id
+        map["name"] = name
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Tag {
+            return Tag(
+                id = (json["id"] as? Number)?.toInt(),
+                name = json["name"] as String
+            )
+        }
+    }
+}
+
+enum class PetStatus(val value: String) {
+    AVAILABLE("available"),
+    PENDING("pending"),
+    SOLD("sold");
+
+    companion object {
+        fun fromValue(value: String): PetStatus = values().first { it.value == value }
+    }
+}
+

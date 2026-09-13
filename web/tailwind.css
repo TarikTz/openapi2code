@@ -1,0 +1,30 @@
+/* tailwind.css — input for the Tailwind CLI build (see build.sh / `npm run
+   build:css`). Compiles to style.css, which every page in web/ links
+   instead of the cdn.tailwindcss.com Play CDN script: the Play CDN ships
+   Tailwind's JIT compiler to the browser and recompiles on every page
+   load (a visible console warning, plus needless weight and compile time)
+   — fine for prototyping, not for a deployed site. The @theme values below
+   are the same design tokens every page's HTML previously declared
+   individually via an inline `tailwind.config = {...}` script. */
+@import "tailwindcss";
+
+/* Tailwind v4 defaults the `dark:` variant to prefers-color-scheme; this
+   site instead toggles a `.dark` class on <html> (see theme.js/app.js),
+   so the dark variant must be redefined to match — the v4 equivalent of
+   v3's `darkMode: "class"`. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-ink: #10141c;
+  --color-paper: #f5f6f8;
+  --color-brace: #a8650f;
+  --color-brace-light: #f0a94e;
+  --color-lang-ts: #3e7bd9;
+  --color-lang-zod: #7c6fe0;
+  --color-lang-swift: #f0684a;
+  --color-lang-kotlin: #8259e8;
+  --color-lang-dart: #17a7e0;
+
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}

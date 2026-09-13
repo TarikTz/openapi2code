@@ -1,0 +1,74 @@
+swagger: "2.0"
+info:
+  title: Petstore-style fixture (Swagger 2.0)
+  version: "1.0.0"
+paths:
+  /pets:
+    get:
+      summary: List pets
+      responses:
+        # Unquoted status codes are non-string YAML mapping keys, and are
+        # pervasive in real specs even though paths are not parsed here.
+        200:
+          description: A list of pets
+        404:
+          description: Not found
+definitions:
+  Category:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+      - name
+  Tag:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+      - name
+  Pet:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      nickname:
+        type: string
+        x-nullable: true
+      category:
+        $ref: "#/definitions/Category"
+      tags:
+        type: array
+        items:
+          $ref: "#/definitions/Tag"
+      photoUrls:
+        type: array
+        items:
+          type: string
+      status:
+        type: string
+        enum:
+          - available
+          - pending
+          - sold
+    required:
+      - name
+      - photoUrls
+      - nickname
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    required:
+      - code
+      - message

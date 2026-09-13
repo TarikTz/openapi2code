@@ -1,0 +1,27 @@
+openapi: "3.0.3"
+info:
+  title: Circular fixture
+  version: "1.0.0"
+components:
+  schemas:
+    TreeNode:
+      type: object
+      properties:
+        value:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/TreeNode"
+      required:
+        - value
+    A:
+      type: object
+      properties:
+        b:
+          $ref: "#/components/schemas/B"
+    B:
+      type: object
+      properties:
+        a:
+          $ref: "#/components/schemas/A"

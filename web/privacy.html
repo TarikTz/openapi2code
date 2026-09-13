@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — OpenAPI2Code</title>
+  <meta name="description" content="OpenAPI2Code's privacy policy: what happens to the specs you paste (nothing — it never leaves your browser), and what little else the site touches.">
+  <link rel="canonical" href="https://openapi2code.com/privacy.html">
+  <meta name="robots" content="noindex">
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@1.45.0"></script>
+</head>
+<body class="bg-paper dark:bg-ink text-ink dark:text-paper font-sans antialiased min-h-screen">
+  <header class="flex items-center justify-between px-6 py-4 border-b border-ink/10 dark:border-paper/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <span class="font-mono text-xl font-semibold text-brace dark:text-brace-light" aria-hidden="true">{ }</span>
+      <span class="font-mono text-base font-medium tracking-tight">OpenAPI2Code</span>
+    </a>
+    <nav class="hidden sm:flex items-center gap-6 font-mono text-sm text-ink/70 dark:text-paper/70">
+      <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
+      <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
+      <a href="index.html#playground" class="hover:text-ink dark:hover:text-paper">Playground</a>
+    </nav>
+    <button id="theme-toggle" type="button" aria-label="Toggle theme"
+            class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+      <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
+      <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+    </button>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-6 py-16 flex flex-col gap-10">
+    <div class="flex flex-col gap-2">
+      <h1 class="font-mono text-3xl sm:text-4xl font-medium tracking-tight">Privacy Policy</h1>
+      <p class="text-sm text-ink/50 dark:text-paper/50">Last updated: September 12, 2026</p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h2 class="font-mono text-xl font-medium tracking-tight">The short version</h2>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        The playground on this site converts an OpenAPI or Swagger spec
+        into code entirely inside your browser. The spec you paste, drop,
+        or fetch, and the code it generates, are never transmitted to us
+        or to any server we operate — there is no backend for this tool
+        to send them to. That's not a policy choice we could reverse
+        later; the conversion engine is compiled to WebAssembly and runs
+        on your machine.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h2 class="font-mono text-xl font-medium tracking-tight">What we don't collect</h2>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        We don't run analytics or tracking scripts on this site, we don't
+        use advertising cookies, and we don't have user accounts, so
+        there's nothing tied to your identity for us to store. If that
+        ever changes, this policy will be updated first, and the change
+        will be dated above.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h2 class="font-mono text-xl font-medium tracking-tight">What does leave your browser</h2>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        This page loads its font, syntax-highlighting icon set, and
+        styling framework from third-party content delivery networks
+        (Google Fonts, unpkg, and Tailwind's hosted CDN). Loading any web
+        page's static assets from a CDN causes your browser to make a
+        direct request to that CDN, which — like any web request — can
+        see your IP address and can set cookies under its own domain,
+        governed by that provider's own privacy policy, not this one. We
+        don't control what those providers do with that request beyond
+        serving the file.
+      </p>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        If you use the "fetch from a URL" feature in the playground, your
+        browser makes a direct request to whatever URL you enter — again,
+        not through any server of ours. That request is between your
+        browser and the URL's own host.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h2 class="font-mono text-xl font-medium tracking-tight">Local storage</h2>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        This site remembers your light/dark theme preference using your
+        browser's local storage. That preference never leaves your
+        device — it isn't a cookie, isn't sent in any request, and isn't
+        visible to us at all.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h2 class="font-mono text-xl font-medium tracking-tight">The CLI</h2>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        The command-line tool runs entirely on your own machine. It reads
+        the spec you point it at (a local file, stdin, or a URL you give
+        it) and writes generated files to a location you choose. It has
+        no telemetry and makes no network requests beyond fetching a
+        spec, if you asked it to fetch one from a URL.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h2 class="font-mono text-xl font-medium tracking-tight">Changes to this policy</h2>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        If this policy changes in a way that matters — most plausibly, if
+        we ever add analytics — we'll update the date at the top of this
+        page and describe the change here rather than silently editing
+        it.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h2 class="font-mono text-xl font-medium tracking-tight">Questions</h2>
+      <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+        Reach us via the <a href="contact.html" class="text-brace dark:text-brace-light hover:opacity-80">contact page</a>.
+      </p>
+    </div>
+  </main>
+
+  <footer class="border-t border-ink/10 dark:border-paper/10 px-6 py-8 text-sm text-ink/50 dark:text-paper/50 font-mono">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code — a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
+      <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
+        <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
+        <a href="contact.html" class="hover:text-ink dark:hover:text-paper">Contact</a>
+        <a href="privacy.html" class="hover:text-ink dark:hover:text-paper">Privacy</a>
+        <a href="terms.html" class="hover:text-ink dark:hover:text-paper">Terms</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script type="module" src="theme.js"></script>
+</body>
+</html>

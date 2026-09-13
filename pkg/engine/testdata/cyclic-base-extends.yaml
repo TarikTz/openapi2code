@@ -1,0 +1,30 @@
+openapi: "3.0.3"
+info:
+  title: Non-cyclic model extending a cyclic base fixture
+  version: "1.0.0"
+components:
+  schemas:
+    # Node is self-referential, so it is Cyclic and renders as
+    # z.lazy()/z.ZodType<Node>.
+    Node:
+      type: object
+      properties:
+        id:
+          type: string
+        next:
+          $ref: "#/components/schemas/Node"
+      required:
+        - id
+    # NamedNode extends the cyclic base but is not itself cyclic — nothing
+    # reaches back to it. Its base has no .extend(), so it must fold to an
+    # intersection. It also sorts alphabetically BEFORE Node, so the
+    # monolithic layout has to move Node ahead of it.
+    NamedNode:
+      allOf:
+        - $ref: "#/components/schemas/Node"
+        - type: object
+          properties:
+            name:
+              type: string
+          required:
+            - name

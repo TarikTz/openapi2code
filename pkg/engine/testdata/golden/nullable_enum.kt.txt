@@ -1,0 +1,37 @@
+data class Account(
+    val id: String,
+    val nickname: String? = null,
+    val note: String? = null,
+    val status: Status
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["id"] = id
+        map["nickname"] = nickname
+        map["note"] = note
+        map["status"] = status.value
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Account {
+            return Account(
+                id = json["id"] as String,
+                nickname = json["nickname"] as? String,
+                note = json["note"] as? String,
+                status = Status.fromValue(json["status"] as String)
+            )
+        }
+    }
+}
+
+enum class Status(val value: String) {
+    ACTIVE("active"),
+    INACTIVE("inactive"),
+    PENDING("pending");
+
+    companion object {
+        fun fromValue(value: String): Status = values().first { it.value == value }
+    }
+}
+

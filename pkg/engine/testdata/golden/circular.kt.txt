@@ -1,0 +1,57 @@
+data class A(
+    val b: B? = null
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["b"] = b?.toJson()
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): A {
+            return A(
+                b = (json["b"] as? Map<String, Any?>)?.let { B.fromJson(it) }
+            )
+        }
+    }
+}
+
+data class B(
+    val a: A? = null
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["a"] = a?.toJson()
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): B {
+            return B(
+                a = (json["a"] as? Map<String, Any?>)?.let { A.fromJson(it) }
+            )
+        }
+    }
+}
+
+data class TreeNode(
+    val children: List<TreeNode>? = null,
+    val value: String
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["children"] = children?.map { it.toJson() }
+        map["value"] = value
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): TreeNode {
+            return TreeNode(
+                children = (json["children"] as? List<*>)?.map { TreeNode.fromJson(it as Map<String, Any?>) },
+                value = json["value"] as String
+            )
+        }
+    }
+}
+

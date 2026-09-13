@@ -1,0 +1,12 @@
+{
+  "name": "openapi2code-web",
+  "private": true,
+  "description": "Build tooling for the OpenAPI2Code website (web/). Not part of the Go module.",
+  "scripts": {
+    "build:css": "tailwindcss -i ./tailwind.css -o ./style.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}

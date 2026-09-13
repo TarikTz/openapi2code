@@ -1,0 +1,48 @@
+class Animal {
+    final String name;
+
+    Animal({
+        required this.name,
+    });
+
+    factory Animal.fromJson(Map<String, dynamic> json) {
+        return Animal(
+            name: json["name"] as String,
+        );
+    }
+
+    Map<String, dynamic> toJson() {
+        return {
+            "name": name,
+        };
+    }
+}
+
+class Dog {
+    final String name;
+    final String breed;
+
+    Dog({
+        required this.name,
+        required this.breed,
+    });
+
+    factory Dog.fromJson(Map<String, dynamic> json) {
+        return Dog(
+            name: json["name"] as String,
+            breed: json["breed"] as String,
+        );
+    }
+
+    Map<String, dynamic> toJson() {
+        return {
+            "name": name,
+            "breed": breed,
+        };
+    }
+}
+
+// Pet was not generated for the Dart target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).
+
+// StringOrNumber was not generated for the Dart target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).
+

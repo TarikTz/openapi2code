@@ -1,0 +1,36 @@
+openapi: "3.0.3"
+info:
+  title: Transitive allOf-extends chain over a cyclic base fixture
+  version: "1.0.0"
+components:
+  schemas:
+    # Base is cyclic; Mid extends it (so MidSchema is an intersection, which
+    # has no .extend()); Leaf extends Mid and must therefore fold to an
+    # intersection too, even though Mid itself is not cyclic.
+    Base:
+      type: object
+      properties:
+        id:
+          type: string
+        self:
+          $ref: "#/components/schemas/Base"
+      required:
+        - id
+    Mid:
+      allOf:
+        - $ref: "#/components/schemas/Base"
+        - type: object
+          properties:
+            mid:
+              type: string
+          required:
+            - mid
+    Leaf:
+      allOf:
+        - $ref: "#/components/schemas/Mid"
+        - type: object
+          properties:
+            leaf:
+              type: string
+          required:
+            - leaf

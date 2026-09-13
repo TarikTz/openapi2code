@@ -1,0 +1,54 @@
+public struct Category: Codable {
+    public var id: Int?
+    public var name: String
+
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case name = "name"
+    }
+}
+
+public struct Error: Codable {
+    public var code: Int
+    public var message: String
+
+    enum CodingKeys: String, CodingKey {
+        case code = "code"
+        case message = "message"
+    }
+}
+
+public struct Pet: Codable {
+    public var category: Category?
+    public var id: Int?
+    public var name: String
+    public var photoUrls: [String]
+    public var status: PetStatus?
+    public var tags: [Tag]?
+
+    enum CodingKeys: String, CodingKey {
+        case category = "category"
+        case id = "id"
+        case name = "name"
+        case photoUrls = "photoUrls"
+        case status = "status"
+        case tags = "tags"
+    }
+}
+
+public struct Tag: Codable {
+    public var id: Int?
+    public var name: String
+
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case name = "name"
+    }
+}
+
+public enum PetStatus: String, Codable {
+    case available
+    case pending
+    case sold
+}
+

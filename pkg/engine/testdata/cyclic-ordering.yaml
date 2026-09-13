@@ -1,0 +1,41 @@
+openapi: "3.0.3"
+info:
+  title: Cyclic model referenced by non-cyclic siblings fixture
+  version: "1.0.0"
+components:
+  schemas:
+    # Comment sorts BEFORE Thread alphabetically but reads ThreadSchema
+    # eagerly, so the monolithic layout must declare Thread first even
+    # though Thread is the cyclic one.
+    Comment:
+      type: object
+      properties:
+        body:
+          type: string
+        thread:
+          $ref: "#/components/schemas/Thread"
+      required:
+        - body
+        - thread
+    # Thread is self-referential (cyclic) and references User. That
+    # reference is deferred inside z.lazy, so it must NOT pull User ahead of
+    # Thread — User keeps its alphabetical slot at the end.
+    Thread:
+      type: object
+      properties:
+        author:
+          $ref: "#/components/schemas/User"
+        parent:
+          $ref: "#/components/schemas/Thread"
+        title:
+          type: string
+      required:
+        - title
+        - author
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name

@@ -1,0 +1,43 @@
+class Account {
+    final String id;
+    final String? nickname;
+    final String? note;
+    final Status status;
+
+    Account({
+        required this.id,
+        this.nickname,
+        this.note,
+        required this.status,
+    });
+
+    factory Account.fromJson(Map<String, dynamic> json) {
+        return Account(
+            id: json["id"] as String,
+            nickname: json["nickname"] as String?,
+            note: json["note"] as String?,
+            status: Status.fromValue(json["status"] as String),
+        );
+    }
+
+    Map<String, dynamic> toJson() {
+        return {
+            "id": id,
+            "nickname": nickname,
+            "note": note,
+            "status": status.value,
+        };
+    }
+}
+
+enum Status {
+    active("active"),
+    inactive("inactive"),
+    pending("pending");
+
+    final String value;
+    const Status(this.value);
+
+    static Status fromValue(String value) => Status.values.firstWhere((e) => e.value == value);
+}
+

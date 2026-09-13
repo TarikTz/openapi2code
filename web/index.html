@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart</title>
+  <meta name="description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code — free, in your browser, with nothing ever sent to a server.">
+  <link rel="canonical" href="https://openapi2code.com/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://openapi2code.com/">
+  <meta property="og:site_name" content="OpenAPI2Code">
+  <meta property="og:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart">
+  <meta property="og:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code — free, in your browser, with nothing ever sent to a server.">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart">
+  <meta name="twitter:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code — free, in your browser, with nothing ever sent to a server.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "OpenAPI2Code",
+    "url": "https://openapi2code.com/",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any (runs in the browser)",
+    "description": "Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code entirely client-side, with no server round-trip.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@1.45.0"></script>
+  <style>
+    /* Tailwind's Play CDN only generates classes it can see in the
+       markup; the highlighter builds these class names at runtime in
+       JS, so their colors are defined here as plain CSS instead. */
+    .tok-keyword { color: #a626a4; }
+    .tok-string  { color: #50a14f; }
+    .tok-number  { color: #986801; }
+    .tok-comment { color: #a0a1a7; font-style: italic; }
+    .tok-type    { color: #4078f2; }
+    .dark .tok-keyword { color: #c678dd; }
+    .dark .tok-string  { color: #98c379; }
+    .dark .tok-number  { color: #d19a66; }
+    .dark .tok-comment { color: #7f848e; font-style: italic; }
+    .dark .tok-type    { color: #61afef; }
+
+    /* The hero's one animated moment: the output chips arrive in a single
+       staggered sweep on page load, never again (no hover/scroll repeats). */
+    @keyframes chip-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .chip-in { animation: chip-in 500ms ease-out both; }
+    .chip-in:nth-child(1) { animation-delay: 80ms; }
+    .chip-in:nth-child(2) { animation-delay: 160ms; }
+    .chip-in:nth-child(3) { animation-delay: 240ms; }
+    .chip-in:nth-child(4) { animation-delay: 320ms; }
+    .chip-in:nth-child(5) { animation-delay: 400ms; }
+    @media (prefers-reduced-motion: reduce) {
+      .chip-in { animation: none; }
+    }
+  </style>
+</head>
+<body class="bg-paper dark:bg-ink text-ink dark:text-paper font-sans antialiased min-h-screen">
+  <header class="flex items-center justify-between px-6 py-4 border-b border-ink/10 dark:border-paper/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <span class="font-mono text-xl font-semibold text-brace dark:text-brace-light" aria-hidden="true">{ }</span>
+      <span class="font-mono text-base font-medium tracking-tight">OpenAPI2Code</span>
+    </a>
+    <nav class="hidden sm:flex items-center gap-6 font-mono text-sm text-ink/70 dark:text-paper/70">
+      <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
+      <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
+      <a href="#playground" class="hover:text-ink dark:hover:text-paper">Playground</a>
+    </nav>
+    <button id="theme-toggle" type="button" aria-label="Toggle theme"
+            class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+      <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
+      <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+    </button>
+  </header>
+
+  <!-- Hero: the product's whole idea in one glance — a spec's braces
+       becoming five real, language-native declarations. -->
+  <section class="max-w-6xl mx-auto px-6 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <div class="flex flex-col gap-6">
+      <h1 class="font-mono font-medium tracking-tight leading-tight text-4xl sm:text-5xl">
+        Turn <span class="text-brace dark:text-brace-light">{</span> <span class="text-brace dark:text-brace-light">}</span> into code.
+      </h1>
+      <p class="text-base sm:text-lg text-ink/70 dark:text-paper/70 max-w-md leading-relaxed">
+        Paste an OpenAPI or Swagger spec and get typed models in TypeScript, Zod, Swift,
+        Kotlin, or Dart — generated in your browser. Nothing you paste ever leaves your machine.
+      </p>
+      <div>
+        <a href="#playground"
+           class="inline-flex items-center gap-2 rounded-sm bg-brace dark:bg-brace-light text-white dark:text-ink font-mono text-sm font-medium px-4 py-2.5 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+          Open the editor
+          <i data-lucide="arrow-down" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Always a vertical stack (card, arrow, chip list) rather than
+         switching to a row: the hero's own grid column caps out at ~528px
+         even on the widest screens (the section is max-w-6xl), which is
+         never quite enough room for the card + arrow + five chips side by
+         side — a row layout would need a viewport-width breakpoint that
+         doesn't actually correspond to when this column itself is wide
+         enough, since the outer grid halves it at "md". Stacking removes
+         that mismatch entirely. -->
+    <div class="flex flex-col gap-4">
+      <!-- The spec: one property, bracketed. -->
+      <div class="shrink-0 border border-ink/15 dark:border-paper/15 bg-ink/[0.02] dark:bg-paper/[0.03] px-5 py-4 font-mono text-sm leading-relaxed self-start">
+        <div><span class="text-2xl align-middle text-brace dark:text-brace-light">{</span></div>
+        <div class="pl-4 text-ink/70 dark:text-paper/70">
+          <div>"Pet": {</div>
+          <div class="pl-4">"name": { "type": "string" }</div>
+          <div>}</div>
+        </div>
+        <div><span class="text-2xl align-middle text-brace dark:text-brace-light">}</span></div>
+      </div>
+
+      <i data-lucide="arrow-down" class="w-5 h-5 text-brace dark:text-brace-light shrink-0"></i>
+
+      <!-- Five languages, one spec. Each fragment is real generator output. -->
+      <div class="grid grid-cols-1 gap-2 min-w-0">
+        <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #3E7BD9">
+          <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">TypeScript</span>
+          <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">export interface Pet {</code>
+        </div>
+        <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #7C6FE0">
+          <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">Zod</span>
+          <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">const PetSchema = z.object({</code>
+        </div>
+        <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #F0684A">
+          <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">Swift</span>
+          <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">struct Pet: Codable {</code>
+        </div>
+        <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #8259E8">
+          <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">Kotlin</span>
+          <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">data class Pet(</code>
+        </div>
+        <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #17A7E0">
+          <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">Dart</span>
+          <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">class Pet {</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="playground" class="max-w-6xl mx-auto px-6 pb-16 flex flex-col gap-4">
+    <!-- One line, full width — free to run wider than either panel below it
+         (and to scroll on narrow viewports) rather than wrapping. -->
+    <div id="example-buttons" class="flex flex-nowrap gap-2 overflow-x-auto"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <section class="flex flex-col gap-3">
+        <!-- Fetch-from-URL, occupying the same row slot the output
+             column's file-tabs/copy row does, so both panels still start
+             at the same vertical position. -->
+        <div class="flex items-center gap-2">
+          <input id="url-input" type="url" disabled placeholder="Or fetch from a URL..."
+                 class="flex-1 min-w-0 rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+          <button id="url-fetch-button" type="button" disabled
+                  class="shrink-0 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            Fetch
+          </button>
+        </div>
+        <textarea id="spec-input" spellcheck="false" disabled
+                  placeholder="Paste an OpenAPI/Swagger spec (JSON or YAML)... or drop a file here"
+                  class="w-full h-96 font-mono text-sm p-3 border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light"></textarea>
+        <div class="flex items-center gap-3">
+          <select id="target-select" disabled
+                  class="rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            <option value="ts">TypeScript</option>
+            <option value="zod">Zod</option>
+            <option value="swift">Swift</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="dart">Dart</option>
+          </select>
+          <button id="modular-toggle" type="button" aria-pressed="false" disabled
+                  class="rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            Modular
+          </button>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div id="file-tabs" class="flex flex-wrap gap-2"></div>
+          <button id="copy-button" type="button" aria-label="Copy to clipboard"
+                  class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            <i data-lucide="copy" id="copy-icon" class="w-4 h-4"></i>
+            <i data-lucide="check" id="copy-icon-success" class="w-4 h-4 hidden"></i>
+          </button>
+        </div>
+        <pre id="output" class="w-full h-96 overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="output-code" class="font-mono">Loading WASM module...</code></pre>
+      </section>
+    </div>
+  </main>
+
+  <section class="border-t border-ink/10 dark:border-paper/10">
+    <div class="max-w-6xl mx-auto px-6 py-16 flex flex-col gap-14">
+
+      <div class="flex flex-col gap-3 max-w-2xl">
+        <h2 class="font-mono text-2xl font-medium tracking-tight">What is OpenAPI2Code?</h2>
+        <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+          OpenAPI2Code is a zero-dependency code generator for OpenAPI and Swagger specs.
+          Paste or upload a spec above and get typed models for your target language back —
+          entirely in your browser. The playground runs the same Go engine as the CLI,
+          compiled to WebAssembly, so nothing you paste here is ever sent to a server.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <h2 class="font-mono text-2xl font-medium tracking-tight">Supported targets</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #3E7BD9">
+            <span class="w-2.5 h-2.5 bg-lang-ts"></span>
+            <span class="font-mono font-medium">TypeScript</span>
+            <span class="text-sm text-ink/60 dark:text-paper/60">interfaces</span>
+          </div>
+          <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #7C6FE0">
+            <span class="w-2.5 h-2.5 bg-lang-zod"></span>
+            <span class="font-mono font-medium">Zod</span>
+            <span class="text-sm text-ink/60 dark:text-paper/60">runtime schemas</span>
+          </div>
+          <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #F0684A">
+            <span class="w-2.5 h-2.5 bg-lang-swift"></span>
+            <span class="font-mono font-medium">Swift</span>
+            <span class="text-sm text-ink/60 dark:text-paper/60">Codable structs</span>
+          </div>
+          <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #8259E8">
+            <span class="w-2.5 h-2.5 bg-lang-kotlin"></span>
+            <span class="font-mono font-medium">Kotlin</span>
+            <span class="text-sm text-ink/60 dark:text-paper/60">data classes</span>
+          </div>
+          <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #17A7E0">
+            <span class="w-2.5 h-2.5 bg-lang-dart"></span>
+            <span class="font-mono font-medium">Dart</span>
+            <span class="text-sm text-ink/60 dark:text-paper/60">classes</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <h2 class="font-mono text-2xl font-medium tracking-tight">How it works</h2>
+        <ol class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <li class="border border-ink/15 dark:border-paper/15 p-4 flex items-start gap-3">
+            <span class="font-mono text-3xl text-brace dark:text-brace-light leading-none">1</span>
+            <span class="pt-1">Paste a spec, or pick one of the examples above.</span>
+          </li>
+          <li class="border border-ink/15 dark:border-paper/15 p-4 flex items-start gap-3">
+            <span class="font-mono text-3xl text-brace dark:text-brace-light leading-none">2</span>
+            <span class="pt-1">Choose a target and, optionally, modular output.</span>
+          </li>
+          <li class="border border-ink/15 dark:border-paper/15 p-4 flex items-start gap-3">
+            <span class="font-mono text-3xl text-brace dark:text-brace-light leading-none">3</span>
+            <span class="pt-1">Copy the generated code straight into your project.</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <h2 class="font-mono text-2xl font-medium tracking-tight">Get the CLI</h2>
+        <p class="text-ink/70 dark:text-paper/70 leading-relaxed max-w-2xl">
+          Prefer a command line? The same engine ships as a single static binary.
+          Downloads are coming soon.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <button type="button" disabled
+                  class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-4 py-2 text-sm font-mono opacity-50 cursor-not-allowed">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            macOS — coming soon
+          </button>
+          <button type="button" disabled
+                  class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-4 py-2 text-sm font-mono opacity-50 cursor-not-allowed">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Linux — coming soon
+          </button>
+          <button type="button" disabled
+                  class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-4 py-2 text-sm font-mono opacity-50 cursor-not-allowed">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Windows — coming soon
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="border-t border-ink/10 dark:border-paper/10 px-6 py-8 text-sm text-ink/50 dark:text-paper/50 font-mono">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code — a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
+      <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
+        <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
+        <a href="contact.html" class="hover:text-ink dark:hover:text-paper">Contact</a>
+        <a href="privacy.html" class="hover:text-ink dark:hover:text-paper">Privacy</a>
+        <a href="terms.html" class="hover:text-ink dark:hover:text-paper">Terms</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="wasm_exec.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
