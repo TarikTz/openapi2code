@@ -147,6 +147,49 @@ func TestGenerate_Enum(t *testing.T) {
 	}
 }
 
+// TestGenerate_IntegerEnumUsesLiteralUnionNotStringEnum guards against
+// z.enum() being used for a non-string enum: z.enum() only ever
+// validates strings, so a real numeric payload (the only value type a
+// declared integer enum ever actually receives) would fail every parse
+// against it.
+func TestGenerate_IntegerEnumUsesLiteralUnionNotStringEnum(t *testing.T) {
+	doc := &ir.Document{
+		Models: []*ir.Model{
+			{Name: "Priority", Type: &ir.Node{Kind: ir.KindEnum, Enum: &ir.EnumNode{Values: []string{"1", "2", "3"}, Primitive: ir.PrimitiveInteger}}},
+		},
+	}
+	outputs, err := zod.Generate(doc)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	want := "export const PrioritySchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);\n" +
+		"export type Priority = z.infer<typeof PrioritySchema>;\n"
+	if outputs[0].Declaration != want {
+		t.Errorf("got:\n%s\nwant:\n%s", outputs[0].Declaration, want)
+	}
+}
+
+// TestGenerate_SingleValueIntegerEnumUsesLiteralNotUnion guards Zod v3's
+// z.union() requirement of at least two member schemas: a one-value
+// non-string enum must render as a bare z.literal(v), not a one-element
+// z.union([...]), which wouldn't even satisfy z.union()'s own type.
+func TestGenerate_SingleValueIntegerEnumUsesLiteralNotUnion(t *testing.T) {
+	doc := &ir.Document{
+		Models: []*ir.Model{
+			{Name: "Fixed", Type: &ir.Node{Kind: ir.KindEnum, Enum: &ir.EnumNode{Values: []string{"7"}, Primitive: ir.PrimitiveInteger}}},
+		},
+	}
+	outputs, err := zod.Generate(doc)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	want := "export const FixedSchema = z.literal(7);\n" +
+		"export type Fixed = z.infer<typeof FixedSchema>;\n"
+	if outputs[0].Declaration != want {
+		t.Errorf("got:\n%s\nwant:\n%s", outputs[0].Declaration, want)
+	}
+}
+
 func TestGenerate_ArrayField(t *testing.T) {
 	doc := &ir.Document{
 		Models: []*ir.Model{

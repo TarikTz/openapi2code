@@ -171,9 +171,20 @@ func renderPrimitive(p ir.Primitive) string {
 func renderEnum(e *ir.EnumNode) (string, []string) {
 	parts := make([]string, len(e.Values))
 	for i, v := range e.Values {
-		parts[i] = strconv.Quote(v)
+		parts[i] = renderEnumLiteral(v, e.Primitive)
 	}
 	return strings.Join(parts, " | "), nil
+}
+
+// renderEnumLiteral renders one enum value as a TypeScript literal type:
+// a quoted string for PrimitiveString, the bare numeric/boolean text
+// otherwise (v is already that literal's exact source text — see
+// ir.EnumNode's doc comment).
+func renderEnumLiteral(v string, p ir.Primitive) string {
+	if p == ir.PrimitiveString {
+		return strconv.Quote(v)
+	}
+	return v
 }
 
 func (r *renderer) renderArray(a *ir.ArrayNode) (string, []string) {

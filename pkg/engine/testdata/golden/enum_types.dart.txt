@@ -1,0 +1,93 @@
+enum Flagged {
+    true_(true),
+    false_(false);
+
+    final bool value;
+    const Flagged(this.value);
+
+    static Flagged fromValue(bool value) => Flagged.values.firstWhere((e) => e.value == value);
+}
+
+enum Label {
+    work("work"),
+    personal("personal");
+
+    final String value;
+    const Label(this.value);
+
+    static Label fromValue(String value) => Label.values.firstWhere((e) => e.value == value);
+}
+
+enum Priority {
+    $_1(1),
+    $_2(2),
+    $_3(3);
+
+    final int value;
+    const Priority(this.value);
+
+    static Priority fromValue(int value) => Priority.values.firstWhere((e) => e.value == value);
+}
+
+enum Score {
+    $_1(1),
+    $_2_5(2.5),
+    $_3(3);
+
+    final double value;
+    const Score(this.value);
+
+    static Score fromValue(double value) => Score.values.firstWhere((e) => e.value == value);
+}
+
+class Ticket {
+    final Flagged? flagged;
+    final Label? label;
+    final Priority priority;
+    final List<Priority>? relatedPriorities;
+    final Score? score;
+    final TicketSeverity? severity;
+
+    Ticket({
+        this.flagged,
+        this.label,
+        required this.priority,
+        this.relatedPriorities,
+        this.score,
+        this.severity,
+    });
+
+    factory Ticket.fromJson(Map<String, dynamic> json) {
+        return Ticket(
+            flagged: json["flagged"] != null ? Flagged.fromValue(json["flagged"] as bool) : null,
+            label: json["label"] != null ? Label.fromValue(json["label"] as String) : null,
+            priority: Priority.fromValue(json["priority"] as int),
+            relatedPriorities: (json["relatedPriorities"] as List<dynamic>?)?.map((e) => Priority.fromValue(e as int)).toList(),
+            score: json["score"] != null ? Score.fromValue((json["score"] as num).toDouble()) : null,
+            severity: json["severity"] != null ? TicketSeverity.fromValue(json["severity"] as int) : null,
+        );
+    }
+
+    Map<String, dynamic> toJson() {
+        return {
+            "flagged": flagged?.value,
+            "label": label?.value,
+            "priority": priority.value,
+            "relatedPriorities": relatedPriorities?.map((e) => e.value).toList(),
+            "score": score?.value,
+            "severity": severity?.value,
+        };
+    }
+}
+
+enum TicketSeverity {
+    $_1(1),
+    $_2(2),
+    $_3(3);
+
+    final int value;
+    const TicketSeverity(this.value);
+
+    static TicketSeverity fromValue(int value) => TicketSeverity.values.firstWhere((e) => e.value == value);
+}
+

@@ -71,9 +71,16 @@ type MapNode struct {
 	Values *Node
 }
 
-// EnumNode is a closed set of literal string values.
+// EnumNode is a closed set of literal values, always carried as their
+// string representation (Values), with Primitive recording which JSON
+// Schema type they actually are (PrimitiveString, PrimitiveInteger,
+// PrimitiveNumber, or PrimitiveBoolean) so generators can render each
+// value with the right literal syntax — a quoted string vs. a bare
+// numeric/boolean literal — instead of assuming every enum is
+// string-valued.
 type EnumNode struct {
-	Values []string
+	Values    []string
+	Primitive Primitive
 }
 
 // UnionNode is a set of alternative types (from oneOf/anyOf).

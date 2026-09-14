@@ -14,7 +14,7 @@ import (
 var update = flag.Bool("update", false, "update golden files")
 
 func TestGoldenFixtures(t *testing.T) {
-	fixtures := []string{"petstore", "petstore_v2", "composition", "circular", "nullable_enum"}
+	fixtures := []string{"petstore", "petstore_v2", "composition", "circular", "nullable_enum", "enum_types"}
 	for _, name := range fixtures {
 		t.Run(name, func(t *testing.T) {
 			out := generateFixture(t, name, engine.TSOptions{Modular: false})
@@ -75,6 +75,7 @@ func TestGoldenFixtures_Zod(t *testing.T) {
 		"cyclic-base-extends",
 		"transitive-extends",
 		"cyclic-ordering",
+		"enum_types",
 	}
 	for _, name := range fixtures {
 		name := name
@@ -120,7 +121,7 @@ func TestGoldenFixtures_Zod(t *testing.T) {
 // same fixtures already used to exercise TS's union/enum/cyclic/allOf
 // handling, comparing against testdata/golden/<fixture>.swift.txt.
 func TestGoldenFixtures_Swift(t *testing.T) {
-	fixtures := []string{"petstore", "circular", "composition", "nullable_enum"}
+	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types"}
 	for _, name := range fixtures {
 		name := name
 		t.Run(name, func(t *testing.T) {
@@ -152,7 +153,7 @@ func TestGoldenFixtures_Swift(t *testing.T) {
 // same fixtures already used to exercise TS's union/enum/cyclic/allOf
 // handling, comparing against testdata/golden/<fixture>.kt.txt.
 func TestGoldenFixtures_Kotlin(t *testing.T) {
-	fixtures := []string{"petstore", "circular", "composition", "nullable_enum"}
+	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types"}
 	for _, name := range fixtures {
 		name := name
 		t.Run(name, func(t *testing.T) {
@@ -184,7 +185,7 @@ func TestGoldenFixtures_Kotlin(t *testing.T) {
 // same fixtures already used to exercise TS's union/enum/cyclic/allOf
 // handling, comparing against testdata/golden/<fixture>.dart.txt.
 func TestGoldenFixtures_Dart(t *testing.T) {
-	fixtures := []string{"petstore", "circular", "composition", "nullable_enum"}
+	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types"}
 	for _, name := range fixtures {
 		name := name
 		t.Run(name, func(t *testing.T) {

@@ -209,6 +209,58 @@ func TestGenerate_UnionFieldIsSkippedWithModelStillGenerated(t *testing.T) {
 	}
 }
 
+// TestGenerate_RefToArrayOfInlineObjectFieldIsSkipped guards a field
+// whose $ref points at a top-level array alias with an INLINE (non-$ref)
+// object item — e.g. `Things: {type: array, items: {type: object, ...}}`.
+// Before this fix, such a field still declared its type as the alias
+// (`val things: Things`) but generated `things.map { it }`/
+// `(json["things"] as List<*>).map { it }` for its (de)serialization:
+// `.map { it }` infers List<Any?>, which does not satisfy the
+// List<ThingsItem>-typed constructor parameter — a Kotlin compile error,
+// not merely wrong output. The alias itself (Things) still renders
+// correctly; only a field referencing it through this exact shape is
+// unrepresentable and must be skipped with a comment instead.
+func TestGenerate_RefToArrayOfInlineObjectFieldIsSkipped(t *testing.T) {
+	raw := &spec.RawDocument{
+		Schemas: map[string]*spec.RawSchema{
+			"Things": {
+				Type:  "array",
+				Items: &spec.RawSchema{Type: "object", Properties: map[string]*spec.RawSchema{"label": {Type: "string"}}},
+			},
+			"Container": {
+				Type:       "object",
+				Properties: map[string]*spec.RawSchema{"things": {Ref: "#/components/schemas/Things"}},
+				Required:   []string{"things"},
+			},
+		},
+	}
+	models, err := kotlin.Generate(buildDoc(t, raw))
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	var containerDecl, thingsDecl string
+	for _, m := range models {
+		switch m.Name {
+		case "Container":
+			containerDecl = m.Declaration
+		case "Things":
+			thingsDecl = m.Declaration
+		}
+	}
+	if strings.Contains(containerDecl, "val things") {
+		t.Errorf("expected the things field to be omitted as a real property, got:\n%s", containerDecl)
+	}
+	if !strings.Contains(containerDecl, "// things: skipped — unsupported schema shape") {
+		t.Errorf("expected a comment explaining why \"things\" was skipped, got:\n%s", containerDecl)
+	}
+	if strings.Contains(containerDecl, ".map { it }") {
+		t.Errorf("must not generate the broken .map { it } dispatch (infers List<Any?>, a compile error), got:\n%s", containerDecl)
+	}
+	if !strings.Contains(thingsDecl, "typealias Things = List<ThingsItem>") {
+		t.Errorf("expected Things itself to still render correctly, got:\n%s", thingsDecl)
+	}
+}
+
 // TestGenerate_UnionModelIsSkippedEntirely pins Important Finding 6's
 // model-level half: a top-level schema with no clean Kotlin representation
 // (here, a bare oneOf) must still appear in Generate's output as a

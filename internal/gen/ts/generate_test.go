@@ -280,6 +280,27 @@ func TestGenerate_Enum(t *testing.T) {
 	}
 }
 
+// TestGenerate_IntegerEnumRendersUnquotedLiterals guards against every
+// enum being rendered as a string-literal union regardless of its
+// declared type: an integer enum's values must appear as bare numeric
+// literals (1 | 2), not quoted strings ("1" | "2"), which would reject
+// every real (numeric) value of the field.
+func TestGenerate_IntegerEnumRendersUnquotedLiterals(t *testing.T) {
+	doc := &ir.Document{
+		Models: []*ir.Model{
+			{Name: "Priority", Type: &ir.Node{Kind: ir.KindEnum, Enum: &ir.EnumNode{Values: []string{"1", "2", "3"}, Primitive: ir.PrimitiveInteger}}},
+		},
+	}
+	outputs, err := ts.Generate(doc)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	want := "export type Priority = 1 | 2 | 3;\n"
+	if outputs[0].Declaration != want {
+		t.Errorf("got:\n%s\nwant:\n%s", outputs[0].Declaration, want)
+	}
+}
+
 func TestGenerate_ArrayField(t *testing.T) {
 	doc := &ir.Document{
 		Models: []*ir.Model{

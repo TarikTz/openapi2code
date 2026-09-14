@@ -45,6 +45,61 @@ func assertSwiftCompiles(t *testing.T, decls ...string) {
 	}
 }
 
+// TestGenerate_NonStringEnumsCompileWithCorrectRawType guards against
+// every enum being rendered as `String, Codable` regardless of its
+// declared type — which would either compile but reject every real
+// (integer) payload at decode time, or (for a boolean enum) not compile
+// at all: Swift's compiler-synthesized RawRepresentable conformance does
+// not support Bool as a raw enum type. An integer enum must render as
+// `Int, Codable` with unquoted case literals, and a boolean enum must
+// bypass enum synthesis entirely in favor of a plain Bool field.
+func TestGenerate_NonStringEnumsCompileWithCorrectRawType(t *testing.T) {
+	raw := &spec.RawDocument{
+		Schemas: map[string]*spec.RawSchema{
+			"Ticket": {
+				Type: "object",
+				Properties: map[string]*spec.RawSchema{
+					"priority": {Type: "integer", Enum: []interface{}{float64(1), float64(2), float64(3)}},
+					"flagged":  {Type: "boolean", Enum: []interface{}{true, false}},
+				},
+				Required: []string{"priority"},
+			},
+		},
+	}
+	models, err := swift.Generate(buildDoc(t, raw))
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	var ticketDecl, priorityDecl string
+	for _, m := range models {
+		switch m.Name {
+		case "Ticket":
+			ticketDecl = m.Declaration
+		case "TicketPriority":
+			priorityDecl = m.Declaration
+		}
+	}
+	if !strings.Contains(priorityDecl, "public enum TicketPriority: Int, Codable {") {
+		t.Fatalf("expected an Int-backed TicketPriority enum, got declarations: %+v", models)
+	}
+	for _, want := range []string{"= 1", "= 2", "= 3"} {
+		if !strings.Contains(priorityDecl, want) {
+			t.Errorf("TicketPriority missing unquoted literal %q, got:\n%s", want, priorityDecl)
+		}
+	}
+	if strings.Contains(priorityDecl, `"1"`) {
+		t.Errorf("TicketPriority case values must not be quoted strings, got:\n%s", priorityDecl)
+	}
+	if !strings.Contains(ticketDecl, "public var flagged: Bool?") {
+		t.Errorf("expected a boolean enum field to resolve to plain Bool, got:\n%s", ticketDecl)
+	}
+	var allDecls []string
+	for _, m := range models {
+		allDecls = append(allDecls, m.Declaration)
+	}
+	assertSwiftCompiles(t, allDecls...)
+}
+
 func TestGenerate_SimpleObject(t *testing.T) {
 	raw := &spec.RawDocument{
 		Schemas: map[string]*spec.RawSchema{

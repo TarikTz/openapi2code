@@ -117,10 +117,14 @@ func buildMapNode(raw *spec.RawDocument, s *spec.RawSchema, depth int) (*Node, e
 	return &Node{Kind: KindMap, Map: &MapNode{Values: values}}, nil
 }
 
-// buildEnumNode stringifies enum values generically. Only string-valued
-// enums (the overwhelmingly common real-world case) are rendered
-// correctly as TS string-literal unions; numeric/boolean enum values are
-// stringified as-is rather than given type-specific literal formatting.
+// buildEnumNode renders every enum value to its string representation
+// (Values) and records the schema's declared type on EnumNode.Primitive
+// so generators know whether that string is a quoted string literal or
+// the text of a numeric/boolean literal — s.Type is trusted directly,
+// the same source buildNode's own primitive switch uses, and an enum
+// with no declared "type" (legal in JSON Schema) defaults to
+// PrimitiveString, matching every value's rendering before this
+// Primitive field existed.
 //
 // A literal null entry (the standard OpenAPI 3.0 workaround for a
 // nullable enum, paired with nullable: true, since 3.0 has no
@@ -130,6 +134,15 @@ func buildMapNode(raw *spec.RawDocument, s *spec.RawSchema, depth int) (*Node, e
 // The field/schema already conveys nullability separately (see
 // RawSchema.IsNullable / Field.Nullable), so no information is lost.
 func buildEnumNode(s *spec.RawSchema) *Node {
+	primitive := PrimitiveString
+	switch s.Type {
+	case "integer":
+		primitive = PrimitiveInteger
+	case "number":
+		primitive = PrimitiveNumber
+	case "boolean":
+		primitive = PrimitiveBoolean
+	}
 	values := make([]string, 0, len(s.Enum))
 	for _, v := range s.Enum {
 		if v == nil {
@@ -137,7 +150,7 @@ func buildEnumNode(s *spec.RawSchema) *Node {
 		}
 		values = append(values, fmt.Sprint(v))
 	}
-	return &Node{Kind: KindEnum, Enum: &EnumNode{Values: values}}
+	return &Node{Kind: KindEnum, Enum: &EnumNode{Values: values, Primitive: primitive}}
 }
 
 func buildArrayNode(raw *spec.RawDocument, s *spec.RawSchema, depth int) (*Node, error) {

@@ -1,0 +1,43 @@
+public typealias Flagged = Bool
+
+public enum Label: String, Codable {
+    case work
+    case personal
+}
+
+public enum Priority: Int, Codable {
+    case _1 = 1
+    case _2 = 2
+    case _3 = 3
+}
+
+public enum Score: Double, Codable {
+    case _1 = 1
+    case _2_5 = 2.5
+    case _3 = 3
+}
+
+public struct Ticket: Codable {
+    public var flagged: Flagged?
+    public var label: Label?
+    public var priority: Priority
+    public var relatedPriorities: [Priority]?
+    public var score: Score?
+    public var severity: TicketSeverity?
+
+    enum CodingKeys: String, CodingKey {
+        case flagged = "flagged"
+        case label = "label"
+        case priority = "priority"
+        case relatedPriorities = "relatedPriorities"
+        case score = "score"
+        case severity = "severity"
+    }
+}
+
+public enum TicketSeverity: Int, Codable {
+    case _1 = 1
+    case _2 = 2
+    case _3 = 3
+}
+

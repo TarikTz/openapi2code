@@ -1,0 +1,38 @@
+openapi: "3.0.3"
+info:
+  title: Non-string enum types fixture
+  version: "1.0.0"
+components:
+  schemas:
+    Priority:
+      type: integer
+      enum: [1, 2, 3]
+    Score:
+      type: number
+      enum: [1, 2.5, 3]
+    Flagged:
+      type: boolean
+      enum: [true, false]
+    Label:
+      type: string
+      enum: [work, personal]
+    Ticket:
+      type: object
+      properties:
+        priority:
+          $ref: "#/components/schemas/Priority"
+        score:
+          $ref: "#/components/schemas/Score"
+        flagged:
+          $ref: "#/components/schemas/Flagged"
+        label:
+          $ref: "#/components/schemas/Label"
+        relatedPriorities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Priority"
+        severity:
+          type: integer
+          enum: [1, 2, 3]
+      required:
+        - priority

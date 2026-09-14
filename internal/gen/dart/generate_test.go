@@ -442,6 +442,59 @@ func TestGenerate_TopLevelMapOfRef(t *testing.T) {
 	}
 }
 
+// TestGenerate_RefToArrayOfInlineObjectFieldIsSkipped guards a field
+// whose $ref points at a top-level array alias with an INLINE (non-$ref)
+// object item — e.g. `Things: {type: array, items: {type: object, ...}}`.
+// Before this fix, such a field still declared its type as the alias
+// (`final Things things;`) but generated
+// `(json["things"] as List<dynamic>).map((e) => e).toList()` for
+// deserialization: this compiles, but every element is left as a raw
+// Map<String, dynamic> instead of the typed ThingsItem — a silent
+// runtime crash the first time calling code accesses a member on an
+// element. The alias itself (Things) still renders correctly; only a
+// field referencing it through this exact shape is unrepresentable and
+// must be skipped with a comment instead.
+func TestGenerate_RefToArrayOfInlineObjectFieldIsSkipped(t *testing.T) {
+	raw := &spec.RawDocument{
+		Schemas: map[string]*spec.RawSchema{
+			"Things": {
+				Type:  "array",
+				Items: &spec.RawSchema{Type: "object", Properties: map[string]*spec.RawSchema{"label": {Type: "string"}}},
+			},
+			"Container": {
+				Type:       "object",
+				Properties: map[string]*spec.RawSchema{"things": {Ref: "#/components/schemas/Things"}},
+				Required:   []string{"things"},
+			},
+		},
+	}
+	models, err := dart.Generate(buildDoc(t, raw))
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	var containerDecl, thingsDecl string
+	for _, m := range models {
+		switch m.Name {
+		case "Container":
+			containerDecl = m.Declaration
+		case "Things":
+			thingsDecl = m.Declaration
+		}
+	}
+	if strings.Contains(containerDecl, "final Things things") {
+		t.Errorf("expected the things field to be omitted as a real property, got:\n%s", containerDecl)
+	}
+	if !strings.Contains(containerDecl, "// things: skipped — unsupported schema shape") {
+		t.Errorf("expected a comment explaining why \"things\" was skipped, got:\n%s", containerDecl)
+	}
+	if strings.Contains(containerDecl, "(e) => e") {
+		t.Errorf("must not generate the silently-wrong (e) => e dispatch (raw Map, not a typed ThingsItem), got:\n%s", containerDecl)
+	}
+	if !strings.Contains(thingsDecl, "typedef Things = List<ThingsItem>;") {
+		t.Errorf("expected Things itself to still render correctly, got:\n%s", thingsDecl)
+	}
+}
+
 // TestGenerate_RefToMapOfSkippedModelIsOmittedWithComment covers a field
 // whose map values are $ref to an unsupported-shape model — must be
 // skipped with a comment, not reference an undeclared type.

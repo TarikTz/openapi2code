@@ -1,0 +1,81 @@
+enum class Flagged(val value: Boolean) {
+    TRUE(true),
+    FALSE(false);
+
+    companion object {
+        fun fromValue(value: Boolean): Flagged = values().first { it.value == value }
+    }
+}
+
+enum class Label(val value: String) {
+    WORK("work"),
+    PERSONAL("personal");
+
+    companion object {
+        fun fromValue(value: String): Label = values().first { it.value == value }
+    }
+}
+
+enum class Priority(val value: Int) {
+    _1(1),
+    _2(2),
+    _3(3);
+
+    companion object {
+        fun fromValue(value: Int): Priority = values().first { it.value == value }
+    }
+}
+
+enum class Score(val value: Double) {
+    _1(1.0),
+    _2_5(2.5),
+    _3(3.0);
+
+    companion object {
+        fun fromValue(value: Double): Score = values().first { it.value == value }
+    }
+}
+
+data class Ticket(
+    val flagged: Flagged? = null,
+    val label: Label? = null,
+    val priority: Priority,
+    val relatedPriorities: List<Priority>? = null,
+    val score: Score? = null,
+    val severity: TicketSeverity? = null
+) {
+    fun toJson(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        map["flagged"] = flagged?.value
+        map["label"] = label?.value
+        map["priority"] = priority.value
+        map["relatedPriorities"] = relatedPriorities?.map { it.value }
+        map["score"] = score?.value
+        map["severity"] = severity?.value
+        return map
+    }
+
+    companion object {
+        fun fromJson(json: Map<String, Any?>): Ticket {
+            return Ticket(
+                flagged = (json["flagged"] as? Boolean)?.let { Flagged.fromValue(it) },
+                label = (json["label"] as? String)?.let { Label.fromValue(it) },
+                priority = Priority.fromValue((json["priority"] as Number).toInt()),
+                relatedPriorities = (json["relatedPriorities"] as? List<*>)?.map { Priority.fromValue((it as Number).toInt()) },
+                score = ((json["score"] as? Number)?.toDouble())?.let { Score.fromValue(it) },
+                severity = ((json["severity"] as? Number)?.toInt())?.let { TicketSeverity.fromValue(it) }
+            )
+        }
+    }
+}
+
+enum class TicketSeverity(val value: Int) {
+    _1(1),
+    _2(2),
+    _3(3);
+
+    companion object {
+        fun fromValue(value: Int): TicketSeverity = values().first { it.value == value }
+    }
+}
+

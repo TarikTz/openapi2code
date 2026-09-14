@@ -130,6 +130,13 @@ func (r *renderer) renderDeclaration(name string, node *ir.Node, cyclic bool) (s
 	case ir.KindObject:
 		return r.renderObjectDecl(name, node.Object, cyclic)
 	case ir.KindEnum:
+		// A top-level boolean enum has no valid Swift raw-value
+		// representation (see swiftEnumBacking) — alias it to Bool
+		// directly, mirroring the ir.KindPrimitive case just below
+		// rather than emitting a broken `enum X: Bool`.
+		if node.Enum.Primitive == ir.PrimitiveBoolean {
+			return fmt.Sprintf("public typealias %s = Bool\n", name), nil, nil
+		}
 		return r.renderEnumDecl(name, node.Enum), nil, nil
 	case ir.KindUnion, ir.KindIntersection:
 		return unsupportedShapeComment(name), nil, nil // per the design's unsupported-shape rule
@@ -243,20 +250,39 @@ func renderPrimitive(p ir.Primitive) string {
 // OWN original wire string, so the disambiguating suffix never changes
 // what a value decodes from or encodes to.
 func (r *renderer) renderEnumDecl(name string, e *ir.EnumNode) string {
+	rawType, formatLiteral := swiftEnumBacking(e.Primitive)
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "public enum %s: String, Codable {\n", name)
+	fmt.Fprintf(&sb, "public enum %s: %s, Codable {\n", name, rawType)
 	used := make(map[string]bool, len(e.Values))
 	for _, v := range e.Values {
 		caseName := mobile.Uniquify(SanitizeEnumCaseIdentifier(v), used)
 		used[caseName] = true
-		if caseName == v {
+		if e.Primitive == ir.PrimitiveString && caseName == v {
 			fmt.Fprintf(&sb, "    case %s\n", caseName)
 		} else {
-			fmt.Fprintf(&sb, "    case %s = %s\n", caseName, strconv.Quote(v))
+			fmt.Fprintf(&sb, "    case %s = %s\n", caseName, formatLiteral(v))
 		}
 	}
 	sb.WriteString("}\n")
 	return sb.String()
+}
+
+// swiftEnumBacking returns the Swift raw-value type backing an enum for
+// p, plus a function rendering one enum value as that type's literal
+// syntax. Only String/Int/Double are valid Swift enum raw-value types —
+// PrimitiveBoolean never reaches here: Swift's compiler-synthesized
+// RawRepresentable conformance does not support Bool as a raw type at
+// all, so a boolean enum is bypassed entirely in favor of a plain Bool
+// field/typealias before renderEnumDecl or this function is ever
+// consulted (see resolveType's ir.KindEnum case and renderDeclaration's
+// same case).
+func swiftEnumBacking(p ir.Primitive) (swiftType string, formatLiteral func(v string) string) {
+	switch p {
+	case ir.PrimitiveInteger, ir.PrimitiveNumber:
+		return renderPrimitive(p), func(v string) string { return v }
+	default:
+		return "String", func(v string) string { return strconv.Quote(v) }
+	}
 }
 
 // resolvedField is one field ready to render into a struct/class body.
@@ -361,7 +387,19 @@ func (r *renderer) resolveType(node *ir.Node, suggestedName string) (expr string
 			return "", true, nil
 		}
 		return "[String: " + valuesExpr + "]", false, valuesExtra
-	case ir.KindEnum, ir.KindObject:
+	case ir.KindEnum:
+		// Bool can't back a Swift enum's raw value at all (unlike Int,
+		// Double, and String — see swiftEnumBacking's doc comment), so a
+		// boolean enum bypasses synthesizing a named declaration
+		// entirely and resolves straight to Bool, same as an ordinary
+		// boolean field.
+		if node.Enum.Primitive == ir.PrimitiveBoolean {
+			return "Bool", false, nil
+		}
+		name := mobile.Uniquify(SanitizeTypeIdentifier(suggestedName), r.used)
+		r.used[name] = true
+		return name, false, []extraDecl{{Name: name, Node: node}}
+	case ir.KindObject:
 		name := mobile.Uniquify(SanitizeTypeIdentifier(suggestedName), r.used)
 		r.used[name] = true
 		return name, false, []extraDecl{{Name: name, Node: node}}

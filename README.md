@@ -11,10 +11,11 @@ Turn an OpenAPI or Swagger spec into typed TypeScript, Zod, Swift, Kotlin, and D
 ## Features
 
 - Parses OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin
-- Full `$ref`, `allOf`/`oneOf`/`anyOf`, enum, array, `additionalProperties`, nullable/optional, and circular-reference support
+- Full `$ref`, `allOf`/`oneOf`/`anyOf`, type-preserving enum (string, integer, number, and boolean — not just strings), array, `additionalProperties`, nullable/optional, and circular-reference support
 - Generates TypeScript, Zod v3, Swift, Kotlin, and Dart — one target or several in a single run, modular or monolithic
 - Runs as a CLI, a Go library, or entirely client-side in the browser via WebAssembly
 - A single static binary with one third-party dependency (`gopkg.in/yaml.v3`); everything else is the standard library
+- Generated output is checked against the real compiler (`tsc`, `swiftc`, `kotlinc`, `dart`) as part of the test suite, not just diffed as text
 
 ## Status
 
@@ -23,10 +24,10 @@ Every planned target is implemented and tested — TypeScript, Zod v3, Swift, Ko
 What works today:
 - Parses OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0 documents, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin. OpenAPI 3.1 dropped the `nullable` keyword in favor of JSON Schema's `type: [T, "null"]`; this is normalized during parsing into the exact same shape `nullable: true` produces, so every generator sees one uniform representation regardless of which OpenAPI version a field's nullability came from.
 - Resolves internal `$ref`s (`#/components/schemas/*`, `#/definitions/*`)
-- Full support for `allOf` (interface extension / intersection fallback), `oneOf`/`anyOf` (unions), enums, arrays, `additionalProperties` (dictionary/map-shaped fields), nullable vs. optional fields, and circular schema references
+- Full support for `allOf` (interface extension / intersection fallback), `oneOf`/`anyOf` (unions), type-preserving enums (string, integer, number, and boolean values render as their own literal type, not stringified), arrays, `additionalProperties` (dictionary/map-shaped fields), nullable vs. optional fields, and circular schema references
 - Generates TypeScript interfaces, either as one file per model with a barrel `index.ts` (modular) or as a single file (monolithic)
 - Generates Zod v3 validation schemas in the same two layouts, with `z.lazy()`/`z.ZodType<T>` for circular schemas. Generated files `import { z } from "zod"`, so `zod` needs to be a dependency of the *consuming* project — this repo itself stays dependency-free, since it only ever emits schema source text.
-- Generates native mobile models: Swift `Codable` structs (classes for cyclic models), Kotlin data classes, and Dart classes — each with hand-written JSON (de)serialization requiring no consumer dependency, idiomatic camelCase field names with an explicit wire-name mapping back to the original JSON key, and a synthesized named type for any inline (non-`$ref`) enum or object a field resolves to. `oneOf`/`anyOf` and allOf's non-object-member fallback are not yet supported for these three targets — an affected model or field is skipped with a comment rather than generated incorrectly.
+- Generates native mobile models: Swift `Codable` structs (classes for cyclic models), Kotlin data classes, and Dart classes — each with hand-written JSON (de)serialization requiring no consumer dependency, idiomatic camelCase field names with an explicit wire-name mapping back to the original JSON key, and a synthesized named type for any inline (non-`$ref`) enum or object a field resolves to. `oneOf`/`anyOf`, allOf's non-object-member fallback, and a `$ref` to an array/map alias whose items are an inline (non-`$ref`) object or enum are not yet supported for these three targets — an affected model or field is skipped with a comment rather than generated incorrectly.
 - Compiles unchanged to WebAssembly, so the same engine parses and generates entirely client-side in a browser, with no server round-trip — see the playground in `web/`
 - Guards against pathologically deep intra-schema nesting (500+ levels) with a clean error, instead of overflowing the call stack — most likely to matter in the browser, where the JS engine's stack is far smaller than a native Go binary's
 

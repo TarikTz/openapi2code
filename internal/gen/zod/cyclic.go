@@ -81,7 +81,11 @@ func renderTSPrimitive(p ir.Primitive) string {
 func renderTSEnum(e *ir.EnumNode) string {
 	parts := make([]string, len(e.Values))
 	for i, v := range e.Values {
-		parts[i] = strconv.Quote(v)
+		if e.Primitive == ir.PrimitiveString {
+			parts[i] = strconv.Quote(v)
+		} else {
+			parts[i] = v
+		}
 	}
 	return strings.Join(parts, " | ")
 }

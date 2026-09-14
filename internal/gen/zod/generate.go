@@ -217,11 +217,30 @@ func renderPrimitive(p ir.Primitive) string {
 }
 
 func renderEnum(e *ir.EnumNode) string {
+	if e.Primitive != ir.PrimitiveString {
+		return renderNonStringEnum(e)
+	}
 	parts := make([]string, len(e.Values))
 	for i, v := range e.Values {
 		parts[i] = strconv.Quote(v)
 	}
 	return fmt.Sprintf("z.enum([%s])", strings.Join(parts, ", "))
+}
+
+// renderNonStringEnum renders a numeric/boolean enum as a Zod literal
+// union: z.enum() only ever validates strings, so a real JSON number or
+// boolean payload would fail every parse against it. A single-value enum
+// renders as a bare z.literal(v) rather than a one-element z.union — Zod
+// v3's z.union() type requires at least two member schemas.
+func renderNonStringEnum(e *ir.EnumNode) string {
+	if len(e.Values) == 1 {
+		return fmt.Sprintf("z.literal(%s)", e.Values[0])
+	}
+	parts := make([]string, len(e.Values))
+	for i, v := range e.Values {
+		parts[i] = fmt.Sprintf("z.literal(%s)", v)
+	}
+	return fmt.Sprintf("z.union([%s])", strings.Join(parts, ", "))
 }
 
 func (r *renderer) renderArray(a *ir.ArrayNode) (string, []string) {

@@ -43,14 +43,18 @@ func Generate(doc *ir.Document) ([]ModelOutput, error) {
 		used[n] = true
 	}
 	kinds := make(map[string]modelKind, len(doc.Models))
+	enumPrimitives := make(map[string]ir.Primitive, len(doc.Models))
 	for _, m := range doc.Models {
 		kinds[names[m.Name]] = kindOf(m.Type)
+		if m.Type.Kind == ir.KindEnum {
+			enumPrimitives[names[m.Name]] = m.Type.Enum.Primitive
+		}
 	}
 	modelsByName := make(map[string]*ir.Model, len(doc.Models))
 	for _, m := range doc.Models {
 		modelsByName[m.Name] = m
 	}
-	r := &renderer{names: names, kinds: kinds, modelsByName: modelsByName, used: used}
+	r := &renderer{names: names, kinds: kinds, enumPrimitives: enumPrimitives, modelsByName: modelsByName, used: used}
 
 	queue := make([]extraDecl, 0, len(doc.Models))
 	for _, m := range doc.Models {
@@ -98,9 +102,10 @@ func kindOf(node *ir.Node) modelKind {
 // (not their resolved Kotlin identifier) — so flattenFields can resolve
 // an allOf-derived Extends chain into the actual base model's Fields.
 type renderer struct {
-	names        map[string]string
-	kinds        map[string]modelKind
-	modelsByName map[string]*ir.Model
+	names          map[string]string
+	kinds          map[string]modelKind
+	enumPrimitives map[string]ir.Primitive
+	modelsByName   map[string]*ir.Model
 
 	// used tracks every Kotlin type identifier minted so far: every
 	// top-level model's assigned name (seeded by Generate before any
@@ -295,6 +300,16 @@ func (r *renderer) refIsUnsupported(refName string) bool {
 // nodeIsUnsupported mirrors resolveType's/renderDeclaration's skip
 // conditions for a node that isn't (or is no longer, after alias
 // resolution) a bare $ref.
+//
+// Its ir.KindArray/ir.KindMap cases route the item/values type through
+// itemDispatchIsUnsupported rather than recursing into nodeIsUnsupported
+// directly — this function is reached exclusively via refIsUnsupported's
+// resolveAliasTarget walk (never for a field's own directly-declared,
+// non-aliased array/map type, which resolveType handles by recursing
+// into itself and always succeeds for an inline object/enum item), so an
+// inline item found here specifically means "an array/map alias reached
+// through a $ref" — precisely the shape resolveRefDispatchNode cannot
+// (de)serialize correctly (see its doc comment).
 func (r *renderer) nodeIsUnsupported(node *ir.Node) bool {
 	switch node.Kind {
 	case ir.KindRef:
@@ -302,14 +317,35 @@ func (r *renderer) nodeIsUnsupported(node *ir.Node) bool {
 	case ir.KindPrimitive:
 		return node.Primitive == ir.PrimitiveUnknown
 	case ir.KindArray:
-		return r.nodeIsUnsupported(node.Array.Items)
+		return r.itemDispatchIsUnsupported(node.Array.Items)
 	case ir.KindMap:
-		return r.nodeIsUnsupported(node.Map.Values)
+		return r.itemDispatchIsUnsupported(node.Map.Values)
 	case ir.KindUnion, ir.KindIntersection:
 		return true
 	default: // KindEnum, KindObject: resolveType always synthesizes a real declaration for these
 		return false
 	}
+}
+
+// itemDispatchIsUnsupported reports whether an array/map alias's
+// item/values type — reached via nodeIsUnsupported, so always through a
+// $ref to that alias, never a field's own inline array/map type — has a
+// (de)serialization dispatch this generator can actually produce. A
+// further $ref recurses normally. An INLINE (non-$ref) object or enum
+// item is the one shape rejected here: resolveRefDispatchNode has no way
+// to recover the synthesized name that inline item was (or will be)
+// minted under when the alias's own top-level declaration is rendered —
+// see resolveRefDispatchNode's doc comment for why that name isn't
+// reconstructable from this call site. Without this check, such a field
+// silently generated either a Kotlin compile error (`.map { it }`
+// inferring List<Any?> against a typed List<ItemType> parameter) or, for
+// a map, an incorrectly-typed value — per the design's unsupported-shape
+// rule, the field is skipped with a comment instead.
+func (r *renderer) itemDispatchIsUnsupported(item *ir.Node) bool {
+	if item.Kind == ir.KindObject || item.Kind == ir.KindEnum {
+		return true
+	}
+	return r.nodeIsUnsupported(item)
 }
 
 // unsupportedShapeComment renders the comment-only declaration emitted in
@@ -346,8 +382,9 @@ func renderPrimitive(p ir.Primitive) string {
 // is always the constant's OWN original wire string, so the
 // disambiguating suffix never changes what fromValue()/`.value` see.
 func (r *renderer) renderEnumClass(name string, e *ir.EnumNode) string {
+	backingType, formatLiteral := kotlinEnumBacking(e.Primitive)
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "enum class %s(val value: String) {\n", name)
+	fmt.Fprintf(&sb, "enum class %s(val value: %s) {\n", name, backingType)
 	used := make(map[string]bool, len(e.Values))
 	for i, v := range e.Values {
 		constName := mobile.Uniquify(SanitizeEnumConstantIdentifier(v), used)
@@ -356,13 +393,39 @@ func (r *renderer) renderEnumClass(name string, e *ir.EnumNode) string {
 		if i == len(e.Values)-1 {
 			comma = ";"
 		}
-		fmt.Fprintf(&sb, "    %s(%s)%s\n", constName, strconv.Quote(v), comma)
+		fmt.Fprintf(&sb, "    %s(%s)%s\n", constName, formatLiteral(v), comma)
 	}
 	sb.WriteString("\n    companion object {\n")
-	fmt.Fprintf(&sb, "        fun fromValue(value: String): %s = values().first { it.value == value }\n", name)
+	fmt.Fprintf(&sb, "        fun fromValue(value: %s): %s = values().first { it.value == value }\n", backingType, name)
 	sb.WriteString("    }\n")
 	sb.WriteString("}\n")
 	return sb.String()
+}
+
+// kotlinEnumBacking returns the Kotlin type backing an enum class's
+// `value` property for p, plus a function rendering one enum value as
+// that type's literal syntax. A Double literal needs an explicit decimal
+// point — v is already an integer-valued string like "1" for a whole
+// number (see ir.EnumNode's doc comment), and Kotlin, unlike Swift and
+// Dart, does not implicitly widen an Int literal to Double in a
+// constructor argument position, so "1" alone would be a type error
+// against a Double-typed parameter.
+func kotlinEnumBacking(p ir.Primitive) (kotlinType string, formatLiteral func(v string) string) {
+	switch p {
+	case ir.PrimitiveInteger:
+		return "Int", func(v string) string { return v }
+	case ir.PrimitiveNumber:
+		return "Double", func(v string) string {
+			if !strings.Contains(v, ".") {
+				return v + ".0"
+			}
+			return v
+		}
+	case ir.PrimitiveBoolean:
+		return "Boolean", func(v string) string { return v }
+	default:
+		return "String", func(v string) string { return strconv.Quote(v) }
+	}
 }
 
 type resolvedField struct {
@@ -477,6 +540,9 @@ func (r *renderer) resolveType(node *ir.Node, suggestedName string) (expr string
 		name := mobile.Uniquify(SanitizeTypeIdentifier(suggestedName), r.used)
 		r.used[name] = true
 		r.kinds[name] = kindOf(node)
+		if node.Kind == ir.KindEnum {
+			r.enumPrimitives[name] = node.Enum.Primitive
+		}
 		ref := &ir.Node{Kind: ir.KindRef, RefName: name}
 		return name, ref, false, []extraDecl{{Name: name, Node: node}}
 	case ir.KindUnion, ir.KindIntersection:
@@ -499,6 +565,15 @@ func (r *renderer) resolveType(node *ir.Node, suggestedName string) (expr string
 // mismatch and fall through to the wrong (object) dispatch branch.
 func (r *renderer) refKind(refName string) modelKind {
 	return r.kinds[r.nameFor(refName)]
+}
+
+// refEnumPrimitive reports the underlying ir.Primitive of the enum named
+// refName — the raw IR schema name, exactly as stored on an ir.Node's
+// RefName field. Only meaningful when refKind(refName) == modelKindEnum;
+// keyed and routed through r.nameFor for the same reason refKind is (see
+// its doc comment).
+func (r *renderer) refEnumPrimitive(refName string) ir.Primitive {
+	return r.enumPrimitives[r.nameFor(refName)]
 }
 
 // resolveAliasTarget walks refName's own top-level model definition
@@ -573,18 +648,21 @@ func (r *renderer) effectiveRefNode(node *ir.Node) *ir.Node {
 //     that. It does NOT fix the sibling case where the array alias's
 //     items are an INLINE (non-$ref) object or enum — e.g. `Things:
 //     {type: array, items: {type: object, ...}}` — because that item type
-//     was synthesized under a fresh name (e.g. "Things_2") back when
+//     was synthesized under a fresh name (e.g. "ThingsItem") back when
 //     Things was originally rendered as its own top-level declaration (in
 //     a separate, earlier call to resolveType), and that name isn't
 //     recoverable here: re-deriving it independently would risk the two
 //     derivations disagreeing, exactly the bug class Critical Findings
-//     1+2 from this generator's first review round were about. A $ref to
-//     such an array alias therefore still declares the correct field type
-//     (the alias name itself) but its toJson()/fromJson() will incorrectly
-//     treat the inline item type as a plain value rather than calling its
-//     (correctly-generated, just unreferenced from here) toJson()/
-//     fromJson() — a known, disclosed gap, not silently wrong in a way
-//     that also affects the item type's own declaration.
+//     1+2 from this generator's first review round were about. A field of
+//     such an array-alias type is caught by nodeIsUnsupported's
+//     itemDispatchIsUnsupported check before resolveType ever reaches
+//     this function for it, and skipped with a comment instead — this
+//     function itself is therefore never actually called with such a
+//     node's Items (the ir.KindArray/ir.KindMap cases below only ever see
+//     a $ref, a primitive, or a further nested array/map, never a bare
+//     inline object/enum) — the case is documented here anyway, since it
+//     explains why nodeIsUnsupported's array/map handling differs from
+//     this function's.
 //   - a concrete object or enum reached through one or more aliases needs
 //     its OWN name substituted in (not the alias's): fromJsonExpr and
 //     itemFromJsonExpr call target.fromJson(...)/target.fromValue(...),
@@ -647,7 +725,7 @@ func (r *renderer) renderDataClass(name string, o *ir.ObjectNode) (string, []ext
 	if len(fields) == 0 {
 		fmt.Fprintf(&sb, "class %s {\n", name)
 		for _, wireName := range skipped {
-			fmt.Fprintf(&sb, "    // %s: skipped — unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type)\n", wireName)
+			fmt.Fprintf(&sb, "    // %s: skipped — unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, an unrecognized primitive type, or a $ref to an array/map alias whose items are an inline object or enum)\n", wireName)
 		}
 		if len(skipped) > 0 {
 			sb.WriteString("\n")
@@ -797,10 +875,14 @@ func (r *renderer) fromJsonExpr(f resolvedField) string {
 	case ir.KindRef:
 		target := r.nameFor(f.node.RefName)
 		if r.refKind(f.node.RefName) == modelKindEnum {
+			// Reuses kotlinPrimitiveFromJsonExpr's cast for whichever
+			// primitive this enum is actually backed by (not always
+			// String) — see ir.EnumNode's Primitive field.
+			valueExpr := kotlinPrimitiveFromJsonExpr(r.refEnumPrimitive(f.node.RefName), wire, f.optional)
 			if f.optional {
-				return fmt.Sprintf("(json[%s] as? String)?.let { %s.fromValue(it) }", wire, target)
+				return fmt.Sprintf("(%s)?.let { %s.fromValue(it) }", valueExpr, target)
 			}
-			return fmt.Sprintf("%s.fromValue(json[%s] as String)", target, wire)
+			return fmt.Sprintf("%s.fromValue(%s)", target, valueExpr)
 		}
 		if f.optional {
 			return fmt.Sprintf("(json[%s] as? Map<String, Any?>)?.let { %s.fromJson(it) }", wire, target)
@@ -848,6 +930,25 @@ func kotlinPrimitiveFromJsonExpr(p ir.Primitive, wire string, optional bool) str
 	}
 }
 
+// kotlinItemPrimitiveCastExpr is kotlinPrimitiveFromJsonExpr's
+// counterpart for an already-extracted array/map element bound to `it`,
+// rather than a fresh `json[wire]` lookup — used both for a primitive
+// array element and for casting the raw value passed into an enum's
+// fromValue(), which is backed by this same primitive (see
+// ir.EnumNode's Primitive field).
+func kotlinItemPrimitiveCastExpr(p ir.Primitive) string {
+	switch p {
+	case ir.PrimitiveBoolean:
+		return "it as Boolean"
+	case ir.PrimitiveInteger:
+		return "(it as Number).toInt()"
+	case ir.PrimitiveNumber:
+		return "(it as Number).toDouble()"
+	default:
+		return "it as String"
+	}
+}
+
 // itemFromJsonExpr renders the body of the `.map { ... }` lambda used to
 // deserialize one array element. item is already the fully-resolved
 // (alias-unwrapped) node for this position, for the same reason
@@ -859,20 +960,11 @@ func kotlinPrimitiveFromJsonExpr(p ir.Primitive, wire string, optional bool) str
 func (r *renderer) itemFromJsonExpr(item *ir.Node) string {
 	switch item.Kind {
 	case ir.KindPrimitive:
-		switch item.Primitive {
-		case ir.PrimitiveBoolean:
-			return "it as Boolean"
-		case ir.PrimitiveInteger:
-			return "(it as Number).toInt()"
-		case ir.PrimitiveNumber:
-			return "(it as Number).toDouble()"
-		default:
-			return "it as String"
-		}
+		return kotlinItemPrimitiveCastExpr(item.Primitive)
 	case ir.KindRef:
 		target := r.nameFor(item.RefName)
 		if r.refKind(item.RefName) == modelKindEnum {
-			return fmt.Sprintf("%s.fromValue(it as String)", target)
+			return fmt.Sprintf("%s.fromValue(%s)", target, kotlinItemPrimitiveCastExpr(r.refEnumPrimitive(item.RefName)))
 		}
 		return fmt.Sprintf("%s.fromJson(it as Map<String, Any?>)", target)
 	case ir.KindArray:

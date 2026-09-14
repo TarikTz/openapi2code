@@ -161,6 +161,34 @@ func TestBuild_Enum(t *testing.T) {
 	}
 }
 
+// TestBuild_IntegerEnumPreservesPrimitive guards against enum values
+// being treated as string-typed regardless of the schema's declared
+// "type" — every generator renders a string-typed enum's values as
+// quoted string literals, which is wrong for an integer/number/boolean
+// enum (e.g. TS's `"1" | "2"` instead of `1 | 2`, or Zod's
+// z.enum(["1","2"]) rejecting the real number 1 at runtime).
+func TestBuild_IntegerEnumPreservesPrimitive(t *testing.T) {
+	raw := &spec.RawDocument{
+		Schemas: map[string]*spec.RawSchema{
+			"Priority": {Type: "integer", Enum: []interface{}{float64(1), float64(2), float64(3)}},
+		},
+	}
+	doc, err := ir.Build(raw)
+	if err != nil {
+		t.Fatalf("Build: %v", err)
+	}
+	node := doc.Models[0].Type
+	if node.Kind != ir.KindEnum {
+		t.Fatalf("expected KindEnum, got %v", node.Kind)
+	}
+	if node.Enum.Primitive != ir.PrimitiveInteger {
+		t.Errorf("got Primitive %v, want PrimitiveInteger", node.Enum.Primitive)
+	}
+	if len(node.Enum.Values) != 3 || node.Enum.Values[0] != "1" || node.Enum.Values[2] != "3" {
+		t.Errorf("got %v, want [1 2 3]", node.Enum.Values)
+	}
+}
+
 // TestBuild_EnumWithNullValueIsDropped guards the OpenAPI 3.0
 // nullable-enum workaround (a literal null entry alongside
 // nullable: true, since 3.0 has no `type: [T, null]`). Before the fix,
