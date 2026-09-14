@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 cd "$(dirname "$0")/.."
-GOOS=js GOARCH=wasm go build -o web/main.wasm ./cmd/wasm
+GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o web/main.wasm ./cmd/wasm
 cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" web/wasm_exec.js
 echo "Built web/main.wasm and copied web/wasm_exec.js"
 

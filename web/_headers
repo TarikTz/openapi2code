@@ -1,0 +1,12 @@
+# Cloudflare Pages/Workers static-asset headers. Filenames here aren't
+# content-hashed, so this trades a bounded staleness window (up to an
+# hour) for letting repeat page views skip the network entirely instead
+# of re-fetching/revalidating every asset on every navigation.
+/*.wasm
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/*.css
+  Cache-Control: public, max-age=3600, must-revalidate

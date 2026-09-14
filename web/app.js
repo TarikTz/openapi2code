@@ -41,13 +41,16 @@ let debounceHandle = null;
 // --- WASM loading (same pattern as sub-project 4's test page) ---
 
 async function instantiate(importObject) {
+  // priority: "low" deprioritizes this ~1MB+ fetch behind render-blocking
+  // CSS/fonts/icons — those finish first so the page still paints promptly
+  // even though this kicks off immediately. Chrome-only; ignored elsewhere.
   try {
-    return await WebAssembly.instantiateStreaming(fetch("main.wasm"), importObject);
+    return await WebAssembly.instantiateStreaming(fetch("main.wasm", { priority: "low" }), importObject);
   } catch (err) {
     // Re-fetch rather than reusing the first response: instantiateStreaming
     // may already have consumed its body, which would make arrayBuffer()
     // throw "body already read" and mask the real problem.
-    const bytes = await (await fetch("main.wasm")).arrayBuffer();
+    const bytes = await (await fetch("main.wasm", { priority: "low" })).arrayBuffer();
     return await WebAssembly.instantiate(bytes, importObject);
   }
 }
@@ -373,11 +376,18 @@ renderExampleButtons();
 initTheme();
 showPlaceholder("Loading WASM module...");
 
-loadWasm()
-  .then(() => {
-    setControlsEnabled(true);
-    showPlaceholder("Paste a spec or pick an example above to get started.");
-  })
-  .catch((err) => {
-    showError("Failed to load WASM module: " + (err && err.message ? err.message : String(err)));
-  });
+// Deferred to idle time (falling back to a macrotask where
+// requestIdleCallback doesn't exist, e.g. Safari) so fetching and
+// compiling the WASM module doesn't compete with the initial paint for
+// the main thread — the page still becomes interactive as soon as it's
+// ready, just without holding up first paint to get there.
+(window.requestIdleCallback || ((cb) => setTimeout(cb, 0)))(() => {
+  loadWasm()
+    .then(() => {
+      setControlsEnabled(true);
+      showPlaceholder("Paste a spec or pick an example above to get started.");
+    })
+    .catch((err) => {
+      showError("Failed to load WASM module: " + (err && err.message ? err.message : String(err)));
+    });
+});

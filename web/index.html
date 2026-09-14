@@ -100,9 +100,11 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/lucide@1.45.0"></script>
+  <script defer src="https://unpkg.com/lucide@1.45.0"></script>
   <style>
     /* Tailwind's Play CDN only generates classes it can see in the
        markup; the highlighter builds these class names at runtime in
@@ -257,7 +259,7 @@
                   placeholder="Paste an OpenAPI/Swagger spec (JSON or YAML)... or drop a file here"
                   class="w-full h-96 font-mono text-sm p-3 border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light"></textarea>
         <div class="flex items-center gap-3">
-          <select id="target-select" disabled
+          <select id="target-select" disabled aria-label="Generation target"
                   class="rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
             <option value="ts">TypeScript</option>
             <option value="zod">Zod</option>
@@ -439,7 +441,7 @@
     </div>
   </footer>
 
-  <script src="wasm_exec.js"></script>
+  <script defer src="wasm_exec.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
