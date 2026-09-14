@@ -7,17 +7,6 @@ import { highlightCode, languageForFile } from "./highlight.js";
 const DEBOUNCE_MS = 300;
 const THEME_STORAGE_KEY = "openapi2code-theme";
 
-// Lucide's createIcons() replaces each <i data-lucide="..."> with a new
-// <svg>, carrying over id/class/other attributes. It must run before the
-// getElementById calls below, or those calls capture the original <i>
-// elements, which are then discarded from the DOM when createIcons runs.
-// Guarded: if the Lucide CDN script failed to load (offline, CDN blocked),
-// window.lucide is undefined — degrade to missing icons rather than
-// throwing on the module's first statement and killing the whole page.
-if (window.lucide) {
-  window.lucide.createIcons();
-}
-
 const specInput = document.getElementById("spec-input");
 const examplesButton = document.getElementById("examples-button");
 const examplesMenu = document.getElementById("examples-menu");

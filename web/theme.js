@@ -1,14 +1,10 @@
-// theme.js — dark/light theme toggle + lucide icon init, shared by every
-// content page (use-cases, examples, privacy, terms, contact) except the
-// playground itself (index.html), which keeps this same logic inline in
-// app.js so its one critical page has no extra network request on the
-// way to becoming interactive. Kept in sync by hand — this is a small,
-// stable amount of logic, not worth a build step to share formally.
+// theme.js — dark/light theme toggle, shared by every content page
+// (use-cases, examples, privacy, terms, contact) except the playground
+// itself (index.html), which keeps this same logic inline in app.js so
+// its one critical page has no extra network request on the way to
+// becoming interactive. Kept in sync by hand — this is a small, stable
+// amount of logic, not worth a build step to share formally.
 const THEME_STORAGE_KEY = "openapi2code-theme";
-
-if (window.lucide) {
-  window.lucide.createIcons();
-}
 
 const themeToggle = document.getElementById("theme-toggle");
 const themeIconSun = document.getElementById("theme-icon-sun");

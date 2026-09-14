@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Examples — OpenAPI2Code</title>
-  <meta name="description" content="Real, verified OpenAPI2Code output: a plain model, allOf inheritance, oneOf/circular references — across TypeScript, Zod, Swift, Kotlin, and Dart.">
+  <meta name="description" content="Real, verified OpenAPI2Code output: a plain model, allOf inheritance, and oneOf/circular references, shown across TypeScript, Zod, Swift, Kotlin, and Dart.">
   <link rel="canonical" href="https://openapi2code.com/examples.html">
 
   <meta property="og:type" content="website">
@@ -18,13 +18,7 @@
   <meta name="twitter:description" content="Real, verified OpenAPI2Code output across TypeScript, Zod, Swift, Kotlin, and Dart.">
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css">
-  <script defer src="https://unpkg.com/lucide@1.45.0"></script>
   <style>
     .tok-keyword { color: #a626a4; }
     .tok-string  { color: #50a14f; }
@@ -56,8 +50,8 @@
       </a>
       <button id="theme-toggle" type="button" aria-label="Toggle theme"
               class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-        <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
-        <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 hidden" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
       </button>
     </div>
   </header>
@@ -66,8 +60,8 @@
     <div class="flex flex-col gap-4 max-w-2xl">
       <h1 class="font-mono text-3xl sm:text-4xl font-medium tracking-tight">Examples</h1>
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-        Real output from the current generator, not hand-written
-        approximations — every snippet below came out of an actual
+        This is real output from the current generator, not hand-written
+        approximations. Every snippet below came out of an actual
         <code class="font-mono text-sm">openapi2code pull</code> run. Paste
         any of these specs into the
         <a href="index.html#playground" class="text-brace dark:text-brace-light hover:opacity-80">playground</a>
@@ -82,8 +76,8 @@
         <code class="font-mono text-sm">Pet</code> references
         <code class="font-mono text-sm">Category</code> and
         <code class="font-mono text-sm">Tag</code>, holds an array of
-        strings, and has an inline enum field — the shapes that show up
-        in almost every real API.
+        strings, and has an inline enum field. These are the shapes that
+        show up in almost every real API.
       </p>
       <div class="border border-ink/15 dark:border-paper/15 bg-ink/[0.02] dark:bg-paper/[0.03] p-4 font-mono text-sm overflow-x-auto"><pre><code>Pet:
   type: object
@@ -138,10 +132,11 @@
         TypeScript and Zod render <code class="font-mono text-sm">oneOf</code>
         as a real union. The mobile targets don't yet (see
         <a href="index.html#playground" class="text-brace dark:text-brace-light hover:opacity-80">the playground</a>
-        for the current target list) — rather than generate something
-        subtly wrong, they skip the field with an explanatory comment.
-        A self-referential type like <code class="font-mono text-sm">TreeNode</code>
-        works everywhere; Swift renders it as a
+        for the current target list). Rather than generate something
+        subtly wrong, they skip the field and leave an explanatory
+        comment instead. A self-referential type like
+        <code class="font-mono text-sm">TreeNode</code> works everywhere,
+        though Swift renders it as a
         <code class="font-mono text-sm">class</code> instead of a
         <code class="font-mono text-sm">struct</code> specifically for
         cyclic models, since a Swift struct can't contain itself.
@@ -160,19 +155,19 @@ TreeNode:
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="flex flex-col gap-2">
-          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">TypeScript — oneOf becomes a union</span>
+          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">TypeScript: oneOf becomes a union</span>
           <pre class="w-full overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="union-ts" class="font-mono"></code></pre>
         </div>
         <div class="flex flex-col gap-2">
-          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">Swift — oneOf is skipped, not guessed at</span>
+          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">Swift: oneOf is skipped, not guessed at</span>
           <pre class="w-full overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="union-swift" class="font-mono"></code></pre>
         </div>
         <div class="flex flex-col gap-2">
-          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">TypeScript — TreeNode</span>
+          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">TypeScript: TreeNode</span>
           <pre class="w-full overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="tree-ts" class="font-mono"></code></pre>
         </div>
         <div class="flex flex-col gap-2">
-          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">Swift — TreeNode becomes a class (cyclic)</span>
+          <span class="font-mono text-xs text-ink/60 dark:text-paper/60">Swift: TreeNode becomes a class (cyclic)</span>
           <pre class="w-full overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="tree-swift" class="font-mono"></code></pre>
         </div>
       </div>
@@ -188,7 +183,7 @@ TreeNode:
 
   <footer class="border-t border-ink/10 dark:border-paper/10 px-6 py-8 text-sm text-ink/50 dark:text-paper/50 font-mono">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code — a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
+      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code, a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
       <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
         <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>

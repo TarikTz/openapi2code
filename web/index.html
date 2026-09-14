@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart</title>
-  <meta name="description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code — free, in your browser, with nothing ever sent to a server.">
+  <meta name="description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
   <link rel="canonical" href="https://openapi2code.com/">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://openapi2code.com/">
   <meta property="og:site_name" content="OpenAPI2Code">
   <meta property="og:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart">
-  <meta property="og:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code — free, in your browser, with nothing ever sent to a server.">
+  <meta property="og:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart">
-  <meta name="twitter:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code — free, in your browser, with nothing ever sent to a server.">
+  <meta name="twitter:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
 
   <script type="application/ld+json">
   {
@@ -25,7 +25,7 @@
     "url": "https://openapi2code.com/",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any (runs in the browser)",
-    "description": "Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code entirely client-side, with no server round-trip.",
+    "description": "Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It all runs client-side, so there's no server round-trip.",
     "featureList": [
       "OpenAPI 3.0 and 3.1 support",
       "Swagger 2.0 support",
@@ -58,7 +58,7 @@
         "name": "Does OpenAPI2Code send my spec to a server?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "No. The playground runs the same Go engine as the CLI, compiled to WebAssembly, entirely in your browser. The spec you paste or upload is never sent anywhere."
+          "text": "No. The playground runs the same Go engine as the CLI, compiled to WebAssembly, so it works entirely in your browser. Whatever spec you paste or upload stays on your machine."
         }
       },
       {
@@ -74,7 +74,7 @@
         "name": "What languages can OpenAPI2Code generate?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TypeScript interfaces, Zod runtime validation schemas, Swift Codable structs, Kotlin data classes, and Dart classes — all from the same spec, and you can generate more than one target in a single run."
+          "text": "TypeScript interfaces, Zod runtime validation schemas, Swift Codable structs, Kotlin data classes, and Dart classes. All from the same spec, and you can generate more than one at a time."
         }
       },
       {
@@ -82,7 +82,7 @@
         "name": "Is OpenAPI2Code free and open source?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. It's MIT licensed and free to use, with the source available on GitHub."
+          "text": "Yes. It's MIT licensed and free to use, and the source is on GitHub."
         }
       },
       {
@@ -90,7 +90,7 @@
         "name": "Can I use OpenAPI2Code from the command line?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. It ships as a single zero-dependency static binary for macOS, Linux, and Windows, downloadable from GitHub Releases, in addition to the browser playground."
+          "text": "Yes. Besides the browser playground, it ships as a single zero-dependency static binary for macOS, Linux, and Windows, and you can grab it from GitHub Releases."
         }
       },
       {
@@ -98,7 +98,7 @@
         "name": "How do you know the generated code actually works?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "The test suite hands real generated output to the actual compiler for each target (tsc, swiftc, kotlinc, dart) rather than just comparing it as text, and enums preserve their real type (string, integer, number, or boolean) instead of being flattened to strings."
+          "text": "The test suite runs real generated output through the actual compiler for each target (tsc, swiftc, kotlinc, dart) instead of just comparing it as text. Enums also keep their real type now, so a boolean or integer enum won't get flattened into a string."
         }
       }
     ]
@@ -106,13 +106,7 @@
   </script>
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css">
-  <script defer src="https://unpkg.com/lucide@1.45.0"></script>
   <style>
     /* Tailwind's Play CDN only generates classes it can see in the
        markup; the highlighter builds these class names at runtime in
@@ -163,8 +157,8 @@
       </a>
       <button id="theme-toggle" type="button" aria-label="Toggle theme"
               class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-        <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
-        <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 hidden" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
       </button>
     </div>
   </header>
@@ -177,15 +171,15 @@
         Turn <span class="text-brace dark:text-brace-light">{</span> <span class="text-brace dark:text-brace-light">}</span> into code.
       </h1>
       <p class="text-base sm:text-lg text-ink/70 dark:text-paper/70 max-w-md leading-relaxed">
-        Paste an OpenAPI or Swagger spec and get typed models in TypeScript, Zod, Swift,
-        Kotlin, or Dart — instantly, in your browser, with nothing to install. Nothing you
-        paste ever leaves your machine.
+        Paste an OpenAPI or Swagger spec and get typed models back in TypeScript, Zod,
+        Swift, Kotlin, or Dart. It happens instantly, right in your browser, with nothing
+        to install, and nothing you paste ever leaves your machine.
       </p>
       <div>
         <a href="#playground"
            class="inline-flex items-center gap-2 rounded-sm bg-brace dark:bg-brace-light text-white dark:text-ink font-mono text-sm font-medium px-4 py-2.5 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
           Open the editor
-          <i data-lucide="arrow-down" class="w-4 h-4"></i>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
         </a>
       </div>
     </div>
@@ -210,7 +204,7 @@
         <div><span class="text-2xl align-middle text-brace dark:text-brace-light">}</span></div>
       </div>
 
-      <i data-lucide="arrow-down" class="w-5 h-5 text-brace dark:text-brace-light shrink-0"></i>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-brace dark:text-brace-light shrink-0" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
 
       <!-- Five languages, one spec. Each fragment is real generator output. -->
       <div class="grid grid-cols-1 gap-2 min-w-0">
@@ -243,9 +237,9 @@
       <button id="examples-button" type="button" disabled
               aria-haspopup="menu" aria-expanded="false"
               class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-        <i data-lucide="book-open" class="w-4 h-4"></i>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
         Examples
-        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </button>
       <div id="examples-menu" role="menu" hidden
            class="absolute z-10 mt-1 w-80 max-w-[calc(100vw-3rem)] rounded-sm border border-ink/15 dark:border-paper/15 bg-paper dark:bg-ink shadow-lg overflow-hidden"></div>
@@ -288,8 +282,8 @@
           <div id="file-tabs" class="flex flex-wrap gap-2"></div>
           <button id="copy-button" type="button" aria-label="Copy to clipboard"
                   class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            <i data-lucide="copy" id="copy-icon" class="w-4 h-4"></i>
-            <i data-lucide="check" id="copy-icon-success" class="w-4 h-4 hidden"></i>
+            <svg id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <svg id="copy-icon-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 hidden" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
           </button>
         </div>
         <pre id="output" class="w-full h-96 overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="output-code" class="font-mono">Loading WASM module...</code></pre>
@@ -304,12 +298,12 @@
         <h2 class="font-mono text-2xl font-medium tracking-tight">What is OpenAPI2Code?</h2>
         <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
           OpenAPI2Code is a zero-dependency code generator for OpenAPI and Swagger specs.
-          Paste or upload a spec above and get typed models for your target language back —
-          entirely in your browser. The playground runs the same Go engine as the CLI,
-          compiled to WebAssembly, so nothing you paste here is ever sent to a server.
-          There's no Java runtime, Docker image, or per-language toolchain to install first —
-          paste a spec and generate all five targets in one run, whether you're just
-          evaluating it or wiring it into a real project.
+          Paste or upload a spec above and you'll get typed models for your target language
+          back, right in your browser. The playground runs the same Go engine as the CLI,
+          compiled to WebAssembly, so nothing you paste here ever touches a server.
+          There's no Java runtime to install, no Docker image to pull, no per-language
+          toolchain to set up first. Just paste a spec and generate all five targets in one
+          run, whether you're kicking the tires or wiring it into a real project.
         </p>
       </div>
 
@@ -370,17 +364,17 @@
         <div class="flex flex-wrap gap-3">
           <a href="https://github.com/TarikTz/openapi2code/releases/latest/download/openapi2code_darwin_arm64.tar.gz"
              class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-4 py-2 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            <i data-lucide="download" class="w-4 h-4"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
             macOS (Apple Silicon)
           </a>
           <a href="https://github.com/TarikTz/openapi2code/releases/latest/download/openapi2code_linux_amd64.tar.gz"
              class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-4 py-2 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            <i data-lucide="download" class="w-4 h-4"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
             Linux (amd64)
           </a>
           <a href="https://github.com/TarikTz/openapi2code/releases/latest/download/openapi2code_windows_amd64.zip"
              class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-4 py-2 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            <i data-lucide="download" class="w-4 h-4"></i>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>
             Windows (amd64)
           </a>
         </div>
@@ -397,8 +391,8 @@
             <h3 class="font-medium">Does OpenAPI2Code send my spec to a server?</h3>
             <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
               No. The playground runs the same Go engine as the CLI, compiled to
-              WebAssembly, entirely in your browser. The spec you paste or
-              upload is never sent anywhere.
+              WebAssembly, so it works entirely in your browser. Whatever spec
+              you paste or upload stays on your machine.
             </p>
           </div>
           <div>
@@ -411,37 +405,35 @@
             <h3 class="font-medium">What languages can OpenAPI2Code generate?</h3>
             <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
               TypeScript interfaces, Zod runtime validation schemas, Swift
-              Codable structs, Kotlin data classes, and Dart classes — all
-              from the same spec, and you can generate more than one target
-              in a single run.
+              Codable structs, Kotlin data classes, and Dart classes. All
+              from the same spec, and you can generate more than one at a time.
             </p>
           </div>
           <div>
             <h3 class="font-medium">Is OpenAPI2Code free and open source?</h3>
             <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-              Yes. It's MIT licensed and free to use, with the source
-              available on <a href="https://github.com/TarikTz/openapi2code" class="underline hover:text-ink dark:hover:text-paper">GitHub</a>.
+              Yes. It's MIT licensed and free to use, and the source is on
+              <a href="https://github.com/TarikTz/openapi2code" class="underline hover:text-ink dark:hover:text-paper">GitHub</a>.
             </p>
           </div>
           <div>
             <h3 class="font-medium">Can I use OpenAPI2Code from the command line?</h3>
             <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-              Yes. It ships as a single zero-dependency static binary for
-              macOS, Linux, and Windows, downloadable from GitHub Releases,
-              in addition to the browser playground.
+              Yes. Besides the browser playground, it ships as a single
+              zero-dependency static binary for macOS, Linux, and Windows,
+              and you can grab it from GitHub Releases.
             </p>
           </div>
           <div>
             <h3 class="font-medium">How do you know the generated code actually works?</h3>
             <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-              The test suite hands real generated output to the actual
+              The test suite runs real generated output through the actual
               compiler for each target (<code class="font-mono text-sm">tsc</code>,
               <code class="font-mono text-sm">swiftc</code>,
               <code class="font-mono text-sm">kotlinc</code>,
-              <code class="font-mono text-sm">dart</code>) rather than just
-              comparing it as text, and enums preserve their real type
-              (string, integer, number, or boolean) instead of being
-              flattened to strings.
+              <code class="font-mono text-sm">dart</code>) instead of just
+              comparing it as text. Enums also keep their real type now, so
+              a boolean or integer enum won't get flattened into a string.
             </p>
           </div>
         </div>
@@ -452,7 +444,7 @@
 
   <footer class="border-t border-ink/10 dark:border-paper/10 px-6 py-8 text-sm text-ink/50 dark:text-paper/50 font-mono">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code — a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
+      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code, a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
       <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
         <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>

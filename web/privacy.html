@@ -4,18 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy Policy — OpenAPI2Code</title>
-  <meta name="description" content="OpenAPI2Code's privacy policy: what happens to the specs you paste (nothing — it never leaves your browser), and what little else the site touches.">
+  <meta name="description" content="OpenAPI2Code's privacy policy: what happens to the specs you paste (nothing, since it never leaves your browser), and what little else the site touches.">
   <link rel="canonical" href="https://openapi2code.com/privacy.html">
   <meta name="robots" content="noindex">
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css">
-  <script defer src="https://unpkg.com/lucide@1.45.0"></script>
 </head>
 <body class="bg-paper dark:bg-ink text-ink dark:text-paper font-sans antialiased min-h-screen">
   <header class="flex items-center justify-between px-6 py-4 border-b border-ink/10 dark:border-paper/10">
@@ -35,8 +29,8 @@
       </a>
       <button id="theme-toggle" type="button" aria-label="Toggle theme"
               class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-        <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
-        <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 hidden" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
       </button>
     </div>
   </header>
@@ -44,7 +38,7 @@
   <main class="max-w-2xl mx-auto px-6 py-16 flex flex-col gap-10">
     <div class="flex flex-col gap-2">
       <h1 class="font-mono text-3xl sm:text-4xl font-medium tracking-tight">Privacy Policy</h1>
-      <p class="text-sm text-ink/50 dark:text-paper/50">Last updated: September 12, 2026</p>
+      <p class="text-sm text-ink/50 dark:text-paper/50">Last updated: September 14, 2026</p>
     </div>
 
     <div class="flex flex-col gap-3">
@@ -53,10 +47,10 @@
         The playground on this site converts an OpenAPI or Swagger spec
         into code entirely inside your browser. The spec you paste, drop,
         or fetch, and the code it generates, are never transmitted to us
-        or to any server we operate — there is no backend for this tool
-        to send them to. That's not a policy choice we could reverse
-        later; the conversion engine is compiled to WebAssembly and runs
-        on your machine.
+        or to any server we operate. There's no backend for this tool to
+        send them to in the first place. That's not a policy choice we
+        could reverse later, either: the conversion engine is compiled to
+        WebAssembly and runs on your machine.
       </p>
     </div>
 
@@ -74,21 +68,18 @@
     <div class="flex flex-col gap-3">
       <h2 class="font-mono text-xl font-medium tracking-tight">What does leave your browser</h2>
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-        This page loads its font, syntax-highlighting icon set, and
-        styling framework from third-party content delivery networks
-        (Google Fonts, unpkg, and Tailwind's hosted CDN). Loading any web
-        page's static assets from a CDN causes your browser to make a
-        direct request to that CDN, which — like any web request — can
-        see your IP address and can set cookies under its own domain,
-        governed by that provider's own privacy policy, not this one. We
-        don't control what those providers do with that request beyond
-        serving the file.
+        This page's fonts, icons, and styling are all self-hosted, so
+        nothing loads from a third-party CDN just by visiting it. Earlier
+        versions of this site pulled fonts from Google Fonts and icons
+        from unpkg, and each of those was a direct request that could see
+        your IP address and set cookies under its own domain, governed by
+        that provider's policy, not this one. That's no longer the case.
       </p>
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-        If you use the "fetch from a URL" feature in the playground, your
-        browser makes a direct request to whatever URL you enter — again,
-        not through any server of ours. That request is between your
-        browser and the URL's own host.
+        The one exception is the "fetch from a URL" feature in the
+        playground. If you use it, your browser makes a direct request to
+        whatever URL you enter, not through any server of ours. That
+        request is between your browser and the URL's own host.
       </p>
     </div>
 
@@ -97,8 +88,8 @@
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
         This site remembers your light/dark theme preference using your
         browser's local storage. That preference never leaves your
-        device — it isn't a cookie, isn't sent in any request, and isn't
-        visible to us at all.
+        device. It isn't a cookie, it isn't sent in any request, and it
+        isn't visible to us at all.
       </p>
     </div>
 
@@ -116,10 +107,10 @@
     <div class="flex flex-col gap-3">
       <h2 class="font-mono text-xl font-medium tracking-tight">Changes to this policy</h2>
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-        If this policy changes in a way that matters — most plausibly, if
-        we ever add analytics — we'll update the date at the top of this
-        page and describe the change here rather than silently editing
-        it.
+        If this policy ever changes in a way that matters (most likely, if
+        we add analytics down the road), we'll update the date at the top
+        of this page and describe the change here instead of silently
+        editing it.
       </p>
     </div>
 
@@ -133,7 +124,7 @@
 
   <footer class="border-t border-ink/10 dark:border-paper/10 px-6 py-8 text-sm text-ink/50 dark:text-paper/50 font-mono">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code — a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
+      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code, a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
       <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
         <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>

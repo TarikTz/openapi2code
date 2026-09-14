@@ -9,10 +9,6 @@
 // highlightCode() the playground itself uses, for a consistent look.
 import { highlightCode } from "./highlight.js";
 
-if (window.lucide) {
-  window.lucide.createIcons();
-}
-
 const PET_OUTPUTS = {
   ts: {
     label: "TypeScript",

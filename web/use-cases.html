@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Use Cases — OpenAPI2Code</title>
-  <meta name="description" content="Where OpenAPI2Code fits: typed frontend contracts, shared native mobile models, CI drift checks, and quick spec inspection — all generated client-side, no server round-trip.">
+  <meta name="description" content="Where OpenAPI2Code fits: typed frontend contracts, shared native mobile models, CI drift checks, and quick spec inspection. All of it runs client-side, with no server round-trip.">
   <link rel="canonical" href="https://openapi2code.com/use-cases.html">
 
   <meta property="og:type" content="website">
@@ -18,13 +18,7 @@
   <meta name="twitter:description" content="Where OpenAPI2Code fits: typed frontend contracts, shared native mobile models, CI drift checks, and quick spec inspection.">
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="style.css">
-  <script defer src="https://unpkg.com/lucide@1.45.0"></script>
 </head>
 <body class="bg-paper dark:bg-ink text-ink dark:text-paper font-sans antialiased min-h-screen">
   <header class="flex items-center justify-between px-6 py-4 border-b border-ink/10 dark:border-paper/10">
@@ -44,8 +38,8 @@
       </a>
       <button id="theme-toggle" type="button" aria-label="Toggle theme"
               class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-        <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5"></i>
-        <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden"></i>
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 hidden" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
       </button>
     </div>
   </header>
@@ -67,8 +61,8 @@
           interfaces, Zod schemas, or both in one run
           (<code class="font-mono text-sm">--target ts,zod</code>) as part of
           your build. When the backend adds a field or changes a type, the
-          next generation run reflects it — no hand-maintained model files
-          quietly drifting out of date.
+          next generation run picks it up automatically. No hand-maintained
+          model files quietly drifting out of date.
         </p>
       </div>
 
@@ -77,23 +71,23 @@
         <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
           iOS, Android, and Flutter teams working from the same API
           traditionally hand-write and hand-maintain three separate model
-          layers — three places for the same field to be named
-          differently, typed differently, or simply forgotten. Generate
+          layers. That's three places for the same field to get named
+          differently, typed differently, or just forgotten. Generate
           Swift <code class="font-mono text-sm">Codable</code> structs,
           Kotlin <code class="font-mono text-sm">data class</code>es, and
-          Dart classes from the same spec instead, each with idiomatic
-          camelCase fields and hand-written JSON (de)serialization that
-          needs no runtime dependency in the consuming app.
+          Dart classes from the same spec instead. Each comes with idiomatic
+          camelCase fields and hand-written JSON (de)serialization, so the
+          consuming app needs no extra runtime dependency.
         </p>
       </div>
 
       <div class="border-l-2 pl-5 flex flex-col gap-2" style="border-left-color: #8259E8">
         <h2 class="font-mono text-xl font-medium tracking-tight">Catching breaking API changes at build time</h2>
         <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-          Regenerate types as a CI step whenever the spec changes. A field
-          that became optional, an enum value that was removed, a renamed
-          property — these show up as compile errors in the generated
-          types instead of a runtime surprise in production.
+          Regenerate types as a CI step whenever the spec changes. If a
+          field becomes optional, an enum value gets removed, or a
+          property gets renamed, it shows up as a compile error in the
+          generated types, not as a runtime surprise in production.
         </p>
       </div>
 
@@ -104,21 +98,21 @@
           <a href="index.html#playground" class="text-brace dark:text-brace-light hover:opacity-80">playground</a>
           to see exactly what it generates, in any of the five targets,
           before committing to anything. The whole engine runs
-          client-side, compiled to WebAssembly — nothing you paste is
+          client-side, compiled to WebAssembly, so nothing you paste is
           ever sent anywhere. Most OpenAPI code generators need a JVM,
           a Docker image, or a language-specific toolchain installed
-          before you can see any output; this needs a browser tab.
+          before you can see any output. This one just needs a browser tab.
         </p>
       </div>
 
       <div class="border-l-2 pl-5 flex flex-col gap-2" style="border-left-color: #17A7E0">
         <h2 class="font-mono text-xl font-medium tracking-tight">Offline, air-gapped, or behind a strict proxy</h2>
         <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
-          The CLI is a single static binary with no runtime dependencies
-          and no network calls of its own beyond fetching the spec you
-          give it — it works the same behind a corporate proxy, on a
-          disconnected build machine, or in a locked-down CI runner as it
-          does anywhere else.
+          The CLI is a single static binary with no runtime dependencies,
+          and it makes no network calls of its own beyond fetching the
+          spec you give it. That means it works the same behind a
+          corporate proxy, on a disconnected build machine, or in a
+          locked-down CI runner as it does anywhere else.
         </p>
       </div>
     </div>
@@ -134,7 +128,7 @@
 
   <footer class="border-t border-ink/10 dark:border-paper/10 px-6 py-8 text-sm text-ink/50 dark:text-paper/50 font-mono">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code — a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
+      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code, a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
       <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
         <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
