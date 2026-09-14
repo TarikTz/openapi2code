@@ -92,6 +92,14 @@
           "@type": "Answer",
           "text": "Yes. It ships as a single zero-dependency static binary for macOS, Linux, and Windows, downloadable from GitHub Releases, in addition to the browser playground."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "How do you know the generated code actually works?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The test suite hands real generated output to the actual compiler for each target (tsc, swiftc, kotlinc, dart) rather than just comparing it as text, and enums preserve their real type (string, integer, number, or boolean) instead of being flattened to strings."
+        }
       }
     ]
   }
@@ -421,6 +429,19 @@
               Yes. It ships as a single zero-dependency static binary for
               macOS, Linux, and Windows, downloadable from GitHub Releases,
               in addition to the browser playground.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-medium">How do you know the generated code actually works?</h3>
+            <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+              The test suite hands real generated output to the actual
+              compiler for each target (<code class="font-mono text-sm">tsc</code>,
+              <code class="font-mono text-sm">swiftc</code>,
+              <code class="font-mono text-sm">kotlinc</code>,
+              <code class="font-mono text-sm">dart</code>) rather than just
+              comparing it as text, and enums preserve their real type
+              (string, integer, number, or boolean) instead of being
+              flattened to strings.
             </p>
           </div>
         </div>
