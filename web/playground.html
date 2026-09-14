@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Playground — OpenAPI2Code</title>
-  <meta name="description" content="A full-page OpenAPI/Swagger to code playground. Paste a spec and get typed TypeScript, Zod, Swift, Kotlin, or Dart back, saved in your browser as you go.">
+  <meta name="description" content="A full-page OpenAPI/Swagger to code playground. Paste a spec and get typed TypeScript, Zod, Swift, Kotlin, or Dart back, and save the specs you want to keep in a sidebar in your browser.">
   <link rel="canonical" href="https://openapi2code.com/playground.html">
 
   <meta property="og:type" content="website">
@@ -37,7 +37,7 @@
     .dark .tok-type    { color: #61afef; }
   </style>
 </head>
-<body class="bg-paper dark:bg-ink text-ink dark:text-paper font-sans antialiased min-h-screen flex flex-col" data-persist-spec="true">
+<body class="bg-paper dark:bg-ink text-ink dark:text-paper font-sans antialiased min-h-screen flex flex-col">
   <header class="shrink-0 flex items-center justify-between px-6 py-4 border-b border-ink/10 dark:border-paper/10">
     <a href="index.html" class="flex items-center gap-2">
       <span class="font-mono text-xl font-semibold text-brace dark:text-brace-light" aria-hidden="true">{ }</span>
@@ -61,67 +61,95 @@
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col min-h-0 max-w-6xl mx-auto px-6 py-6 gap-4 w-full">
-    <div class="shrink-0 flex flex-col gap-1">
-      <h1 class="font-mono text-2xl font-medium tracking-tight">Playground</h1>
-      <p class="text-sm text-ink/60 dark:text-paper/60">Paste an OpenAPI or Swagger spec below. It's saved in your browser as you type, so it's still here next time you open this page.</p>
-    </div>
-
-    <div class="shrink-0 relative inline-block">
-      <button id="examples-button" type="button" disabled
-              aria-haspopup="menu" aria-expanded="false"
-              class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
-        Examples
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  <main class="flex-1 flex flex-col min-h-0 mx-auto px-4 sm:px-6 py-3 gap-3 w-full">
+    <div class="shrink-0 flex items-center justify-between gap-4">
+      <div class="flex items-baseline gap-3">
+        <h1 class="font-mono text-lg font-medium tracking-tight">Playground</h1>
+        <p class="hidden sm:block text-sm text-ink/60 dark:text-paper/60">Save the specs you want to keep &mdash; anything unsaved is gone on reload.</p>
+      </div>
+      <button id="sidebar-toggle" type="button"
+              class="md:hidden shrink-0 inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+        Saved specs
       </button>
-      <div id="examples-menu" role="menu" hidden
-           class="absolute z-10 mt-1 w-80 max-w-[calc(100vw-3rem)] rounded-sm border border-ink/15 dark:border-paper/15 bg-paper dark:bg-ink shadow-lg overflow-hidden"></div>
     </div>
 
     <div class="flex-1 min-h-0 flex flex-col md:flex-row gap-4">
-      <section class="flex flex-col gap-3 md:flex-1 md:min-h-0">
-        <!-- Fetch-from-URL, occupying the same row slot the output
-             column's file-tabs/copy row does, so both panels still start
-             at the same vertical position. -->
-        <div class="shrink-0 flex items-center gap-2">
-          <input id="url-input" type="url" disabled placeholder="Or fetch from a URL..."
-                 class="flex-1 min-w-0 rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-          <button id="url-fetch-button" type="button" disabled
-                  class="shrink-0 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            Fetch
+      <!-- Saved specs sidebar: collapsed by default on mobile (toggled via
+           #sidebar-toggle above), always visible as a narrow column on
+           desktop so the editor/output panels below keep most of the
+           width — this is a code playground, so those two stay the
+           dominant use of space. -->
+      <aside id="sidebar-panel" class="hidden md:flex flex-col md:w-52 lg:w-60 shrink-0 gap-2 border border-ink/15 dark:border-paper/15 rounded-sm p-3 max-h-64 md:max-h-none md:min-h-0">
+        <div class="shrink-0 flex items-center justify-between gap-2">
+          <h2 class="font-mono text-sm font-medium">Saved specs</h2>
+          <button id="sidebar-save-button" type="button" disabled aria-label="Save current spec" title="Save current spec"
+                  class="shrink-0 p-1.5 rounded-sm border border-ink/15 dark:border-paper/15 hover:bg-ink/5 dark:hover:bg-paper/10 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
           </button>
         </div>
-        <textarea id="spec-input" spellcheck="false" disabled
-                  placeholder="Paste an OpenAPI/Swagger spec (JSON or YAML)... or drop a file here"
-                  class="w-full flex-1 min-h-[50vh] md:min-h-0 font-mono text-sm p-3 border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light"></textarea>
-        <div class="shrink-0 flex items-center gap-3">
-          <select id="target-select" disabled aria-label="Generation target"
-                  class="rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            <option value="ts">TypeScript</option>
-            <option value="zod">Zod</option>
-            <option value="swift">Swift</option>
-            <option value="kotlin">Kotlin</option>
-            <option value="dart">Dart</option>
-          </select>
-          <button id="modular-toggle" type="button" aria-pressed="false" disabled
-                  class="rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            Modular
-          </button>
-        </div>
-      </section>
+        <p id="sidebar-message" class="shrink-0 text-xs text-brace dark:text-brace-light min-h-[1em]" aria-live="polite"></p>
+        <div id="sidebar-list" class="flex-1 min-h-0 flex flex-col gap-0.5 overflow-y-auto"></div>
+      </aside>
 
-      <section class="flex flex-col gap-3 md:flex-1 md:min-h-0">
-        <div class="shrink-0 flex items-center justify-between">
-          <div id="file-tabs" class="flex flex-wrap gap-2"></div>
-          <button id="copy-button" type="button" aria-label="Copy to clipboard"
-                  class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
-            <svg id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            <svg id="copy-icon-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 hidden" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <div class="flex-1 min-h-0 flex flex-col gap-3">
+        <div class="shrink-0 relative inline-block">
+          <button id="examples-button" type="button" disabled
+                  aria-haspopup="menu" aria-expanded="false"
+                  class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
+            Examples
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
+          <div id="examples-menu" role="menu" hidden
+               class="absolute z-10 mt-1 w-80 max-w-[calc(100vw-3rem)] rounded-sm border border-ink/15 dark:border-paper/15 bg-paper dark:bg-ink shadow-lg overflow-hidden"></div>
         </div>
-        <pre id="output" class="w-full flex-1 min-h-[50vh] md:min-h-0 overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="output-code" class="font-mono">Loading WASM module...</code></pre>
-      </section>
+
+        <div class="flex-1 min-h-0 flex flex-col md:flex-row gap-4">
+          <section class="flex flex-col gap-3 md:flex-1 md:min-h-0">
+            <!-- Fetch-from-URL, occupying the same row slot the output
+                 column's file-tabs/copy row does, so both panels still start
+                 at the same vertical position. -->
+            <div class="shrink-0 flex items-center gap-2">
+              <input id="url-input" type="url" disabled placeholder="Or fetch from a URL..."
+                     class="flex-1 min-w-0 rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+              <button id="url-fetch-button" type="button" disabled
+                      class="shrink-0 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+                Fetch
+              </button>
+            </div>
+            <textarea id="spec-input" spellcheck="false" disabled
+                      placeholder="Paste an OpenAPI/Swagger spec (JSON or YAML)... or drop a file here"
+                      class="w-full flex-1 min-h-[60vh] md:min-h-0 font-mono text-sm p-3 border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light"></textarea>
+            <div class="shrink-0 flex items-center gap-3">
+              <select id="target-select" disabled aria-label="Generation target"
+                      class="rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+                <option value="ts">TypeScript</option>
+                <option value="zod">Zod</option>
+                <option value="swift">Swift</option>
+                <option value="kotlin">Kotlin</option>
+                <option value="dart">Dart</option>
+              </select>
+              <button id="modular-toggle" type="button" aria-pressed="false" disabled
+                      class="rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+                Modular
+              </button>
+            </div>
+          </section>
+
+          <section class="flex flex-col gap-3 md:flex-1 md:min-h-0">
+            <div class="shrink-0 flex items-center justify-between">
+              <div id="file-tabs" class="flex flex-wrap gap-2"></div>
+              <button id="copy-button" type="button" aria-label="Copy to clipboard"
+                      class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+                <svg id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <svg id="copy-icon-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 hidden" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              </button>
+            </div>
+            <pre id="output" class="w-full flex-1 min-h-[60vh] md:min-h-0 overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="output-code" class="font-mono">Loading WASM module...</code></pre>
+          </section>
+        </div>
+      </div>
     </div>
   </main>
 

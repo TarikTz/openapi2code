@@ -1,16 +1,13 @@
 // app.js — the OpenAPI2Code playground: loads the WASM module and wires
 // up live (debounced) generation, the example gallery, tabbed output,
-// syntax highlighting, theme toggling, and copy-to-clipboard.
+// syntax highlighting, theme toggling, copy-to-clipboard, and (on
+// playground.html only) the saved-specs sidebar.
 import { EXAMPLES } from "./examples.js";
 import { highlightCode, languageForFile } from "./highlight.js";
 
 const DEBOUNCE_MS = 300;
 const THEME_STORAGE_KEY = "openapi2code-theme";
-const SPEC_STORAGE_KEY = "openapi2code-spec";
-// Only playground.html sets this; the homepage's embedded playground is a
-// stateless demo and stays that way, so app.js checks it rather than
-// forking into two scripts for otherwise-identical wiring.
-const persistSpec = document.body.dataset.persistSpec === "true";
+const SAVED_SPECS_KEY = "openapi2code-saved-specs";
 
 const specInput = document.getElementById("spec-input");
 const examplesButton = document.getElementById("examples-button");
@@ -27,6 +24,15 @@ const copyIconSuccess = document.getElementById("copy-icon-success");
 const themeToggle = document.getElementById("theme-toggle");
 const themeIconSun = document.getElementById("theme-icon-sun");
 const themeIconMoon = document.getElementById("theme-icon-moon");
+
+// Only playground.html has a sidebar; the homepage's embedded playground
+// doesn't, so these are all null there and every block below is guarded
+// on sidebarSaveButton existing rather than forking into two scripts.
+const sidebarSaveButton = document.getElementById("sidebar-save-button");
+const sidebarList = document.getElementById("sidebar-list");
+const sidebarMessage = document.getElementById("sidebar-message");
+const sidebarToggle = document.getElementById("sidebar-toggle");
+const sidebarPanel = document.getElementById("sidebar-panel");
 
 let currentFiles = null; // the last successful generation's { "<name>": "<content>" }
 let activeFile = null; // filename of the currently displayed tab
@@ -65,6 +71,9 @@ function setControlsEnabled(enabled) {
   urlInput.disabled = !enabled;
   urlFetchButton.disabled = !enabled;
   examplesButton.disabled = !enabled;
+  if (sidebarSaveButton) {
+    sidebarSaveButton.disabled = !enabled;
+  }
 }
 
 // --- Example gallery ---
@@ -92,7 +101,6 @@ function renderExampleButtons() {
     `;
     item.addEventListener("click", () => {
       specInput.value = example.spec;
-      saveSpec();
       generate();
       closeExamplesMenu();
       examplesButton.focus();
@@ -121,33 +129,6 @@ document.addEventListener("keydown", (event) => {
     examplesButton.focus();
   }
 });
-
-// --- Spec persistence (playground.html only, see `persistSpec` above) ---
-
-function saveSpec() {
-  if (!persistSpec) {
-    return;
-  }
-  try {
-    localStorage.setItem(SPEC_STORAGE_KEY, specInput.value);
-  } catch (err) {
-    // Ignored — the spec still works for this session, it just won't persist.
-  }
-}
-
-function restoreSpec() {
-  if (!persistSpec) {
-    return;
-  }
-  try {
-    const stored = localStorage.getItem(SPEC_STORAGE_KEY);
-    if (stored) {
-      specInput.value = stored;
-    }
-  } catch (err) {
-    // Ignored — starts empty, same as a page that's never persisted anything.
-  }
-}
 
 // --- Generation ---
 
@@ -181,7 +162,6 @@ async function fetchSpecFromURL() {
       return;
     }
     specInput.value = await response.text();
-    saveSpec();
     generate();
   } catch (err) {
     // A browser fetch() rejects with a generic, deliberately
@@ -201,7 +181,6 @@ function readDroppedFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     specInput.value = typeof reader.result === "string" ? reader.result : "";
-    saveSpec();
     generate();
   };
   reader.onerror = () => {
@@ -299,6 +278,181 @@ modularToggle.addEventListener("click", () => {
   setModular(modularToggle.getAttribute("aria-pressed") !== "true");
 });
 
+// --- Sidebar: named, explicitly-saved specs (playground.html only, see
+// the sidebar* element lookups above) ---
+
+function loadSavedSpecs() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SAVED_SPECS_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function writeSavedSpecs(specs) {
+  try {
+    localStorage.setItem(SAVED_SPECS_KEY, JSON.stringify(specs));
+    return true;
+  } catch (err) {
+    // Quota exceeded, or blocked site data — surfaced to the user by the
+    // caller rather than failing silently, since a save that didn't
+    // actually happen is exactly the kind of thing this feature exists
+    // to prevent.
+    return false;
+  }
+}
+
+function showSidebarMessage(text) {
+  sidebarMessage.textContent = text;
+  setTimeout(() => {
+    if (sidebarMessage.textContent === text) {
+      sidebarMessage.textContent = "";
+    }
+  }, 2000);
+}
+
+// Best-effort label pulled from the spec's own info.title/info.version,
+// whether the spec is JSON or YAML — this is cosmetic sidebar labeling
+// only, never treated as validated OpenAPI, so a plain regex scan for the
+// YAML case is enough; a timestamp is the fallback when neither is found.
+function guessSpecName(specText) {
+  try {
+    const parsed = JSON.parse(specText);
+    const title = parsed?.info?.title;
+    if (typeof title === "string" && title.trim() !== "") {
+      const version = parsed.info.version;
+      return typeof version === "string" && version.trim() !== "" ? `${title} v${version}` : title;
+    }
+  } catch (err) {
+    // Not JSON — fall through to the YAML-ish scan below.
+  }
+  const titleMatch = specText.match(/^\s*title:\s*["']?(.+?)["']?\s*$/m);
+  if (titleMatch) {
+    const versionMatch = specText.match(/^\s*version:\s*["']?(.+?)["']?\s*$/m);
+    return versionMatch ? `${titleMatch[1]} v${versionMatch[1]}` : titleMatch[1];
+  }
+  return `Saved ${new Date().toLocaleString()}`;
+}
+
+function renderSidebarList() {
+  const specs = loadSavedSpecs();
+  sidebarList.innerHTML = "";
+  if (specs.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "text-xs text-ink/50 dark:text-paper/50 px-2";
+    empty.textContent = "Nothing saved yet.";
+    sidebarList.appendChild(empty);
+    return;
+  }
+  for (const entry of specs) {
+    const row = document.createElement("div");
+    row.className = "group flex items-start gap-1 rounded-sm px-2 py-1.5 hover:bg-ink/5 dark:hover:bg-paper/10";
+
+    const loadButton = document.createElement("button");
+    loadButton.type = "button";
+    loadButton.className = "flex-1 min-w-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light";
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "block truncate text-sm font-mono";
+    nameSpan.textContent = entry.name;
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "block text-xs text-ink/50 dark:text-paper/50";
+    dateSpan.textContent = new Date(entry.savedAt).toLocaleString();
+    loadButton.appendChild(nameSpan);
+    loadButton.appendChild(dateSpan);
+    loadButton.addEventListener("click", () => {
+      if (specInput.disabled) {
+        return; // still loading the WASM module
+      }
+      specInput.value = entry.spec;
+      generate();
+    });
+
+    const renameButton = document.createElement("button");
+    renameButton.type = "button";
+    renameButton.setAttribute("aria-label", `Rename "${entry.name}"`);
+    renameButton.className =
+      "shrink-0 p-1 rounded-sm opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-ink/10 dark:hover:bg-paper/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light";
+    renameButton.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
+    renameButton.addEventListener("click", () => {
+      const nextName = prompt("Rename saved spec", entry.name);
+      if (nextName === null) {
+        return;
+      }
+      const trimmed = nextName.trim();
+      if (trimmed === "") {
+        return;
+      }
+      const specs2 = loadSavedSpecs();
+      const target = specs2.find((s) => s.id === entry.id);
+      if (target) {
+        target.name = trimmed;
+        writeSavedSpecs(specs2);
+        renderSidebarList();
+      }
+    });
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.setAttribute("aria-label", `Delete "${entry.name}"`);
+    deleteButton.className =
+      "shrink-0 p-1 rounded-sm opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-ink/10 dark:hover:bg-paper/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light";
+    deleteButton.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+    deleteButton.addEventListener("click", () => {
+      if (!confirm(`Delete "${entry.name}"?`)) {
+        return;
+      }
+      writeSavedSpecs(loadSavedSpecs().filter((s) => s.id !== entry.id));
+      renderSidebarList();
+    });
+
+    row.appendChild(loadButton);
+    row.appendChild(renameButton);
+    row.appendChild(deleteButton);
+    sidebarList.appendChild(row);
+  }
+}
+
+if (sidebarSaveButton) {
+  sidebarSaveButton.addEventListener("click", () => {
+    const specText = specInput.value;
+    if (specText.trim() === "") {
+      showSidebarMessage("Nothing to save.");
+      return;
+    }
+    const entry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: guessSpecName(specText),
+      spec: specText,
+      savedAt: new Date().toISOString(),
+    };
+    const specs = loadSavedSpecs();
+    specs.unshift(entry);
+    if (writeSavedSpecs(specs)) {
+      renderSidebarList();
+      showSidebarMessage("Saved.");
+    } else {
+      showSidebarMessage("Couldn't save — storage might be full.");
+    }
+  });
+  renderSidebarList();
+}
+
+if (sidebarToggle) {
+  sidebarToggle.addEventListener("click", () => {
+    // Swap "hidden" for a plain "flex" (rather than just removing
+    // "hidden") so the panel actually gets display:flex below the md
+    // breakpoint — "md:flex" alone has no effect until then. Above md the
+    // panel stays visible either way, since sidebar-toggle itself is
+    // md:hidden and never fires there.
+    const opening = sidebarPanel.classList.contains("hidden");
+    sidebarPanel.classList.toggle("hidden", !opening);
+    sidebarPanel.classList.toggle("flex", opening);
+  });
+}
+
 // --- Copy to clipboard ---
 
 copyButton.addEventListener("click", async () => {
@@ -365,10 +519,7 @@ themeToggle.addEventListener("click", () => {
 
 // --- Wiring ---
 
-specInput.addEventListener("input", () => {
-  saveSpec();
-  scheduleGenerate();
-});
+specInput.addEventListener("input", scheduleGenerate);
 targetSelect.addEventListener("change", scheduleGenerate);
 
 urlFetchButton.addEventListener("click", fetchSpecFromURL);
@@ -401,7 +552,6 @@ specInput.addEventListener("drop", (event) => {
 
 renderExampleButtons();
 initTheme();
-restoreSpec();
 showPlaceholder("Loading WASM module...");
 
 // Deferred to idle time (falling back to a macrotask where
@@ -413,11 +563,7 @@ showPlaceholder("Loading WASM module...");
   loadWasm()
     .then(() => {
       setControlsEnabled(true);
-      if (specInput.value.trim() !== "") {
-        generate();
-      } else {
-        showPlaceholder("Paste a spec or pick an example above to get started.");
-      }
+      showPlaceholder("Paste a spec or pick an example above to get started.");
     })
     .catch((err) => {
       showError("Failed to load WASM module: " + (err && err.message ? err.message : String(err)));
