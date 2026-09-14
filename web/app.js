@@ -6,6 +6,11 @@ import { highlightCode, languageForFile } from "./highlight.js";
 
 const DEBOUNCE_MS = 300;
 const THEME_STORAGE_KEY = "openapi2code-theme";
+const SPEC_STORAGE_KEY = "openapi2code-spec";
+// Only playground.html sets this; the homepage's embedded playground is a
+// stateless demo and stays that way, so app.js checks it rather than
+// forking into two scripts for otherwise-identical wiring.
+const persistSpec = document.body.dataset.persistSpec === "true";
 
 const specInput = document.getElementById("spec-input");
 const examplesButton = document.getElementById("examples-button");
@@ -87,6 +92,7 @@ function renderExampleButtons() {
     `;
     item.addEventListener("click", () => {
       specInput.value = example.spec;
+      saveSpec();
       generate();
       closeExamplesMenu();
       examplesButton.focus();
@@ -115,6 +121,33 @@ document.addEventListener("keydown", (event) => {
     examplesButton.focus();
   }
 });
+
+// --- Spec persistence (playground.html only, see `persistSpec` above) ---
+
+function saveSpec() {
+  if (!persistSpec) {
+    return;
+  }
+  try {
+    localStorage.setItem(SPEC_STORAGE_KEY, specInput.value);
+  } catch (err) {
+    // Ignored — the spec still works for this session, it just won't persist.
+  }
+}
+
+function restoreSpec() {
+  if (!persistSpec) {
+    return;
+  }
+  try {
+    const stored = localStorage.getItem(SPEC_STORAGE_KEY);
+    if (stored) {
+      specInput.value = stored;
+    }
+  } catch (err) {
+    // Ignored — starts empty, same as a page that's never persisted anything.
+  }
+}
 
 // --- Generation ---
 
@@ -148,6 +181,7 @@ async function fetchSpecFromURL() {
       return;
     }
     specInput.value = await response.text();
+    saveSpec();
     generate();
   } catch (err) {
     // A browser fetch() rejects with a generic, deliberately
@@ -167,6 +201,7 @@ function readDroppedFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
     specInput.value = typeof reader.result === "string" ? reader.result : "";
+    saveSpec();
     generate();
   };
   reader.onerror = () => {
@@ -330,7 +365,10 @@ themeToggle.addEventListener("click", () => {
 
 // --- Wiring ---
 
-specInput.addEventListener("input", scheduleGenerate);
+specInput.addEventListener("input", () => {
+  saveSpec();
+  scheduleGenerate();
+});
 targetSelect.addEventListener("change", scheduleGenerate);
 
 urlFetchButton.addEventListener("click", fetchSpecFromURL);
@@ -363,6 +401,7 @@ specInput.addEventListener("drop", (event) => {
 
 renderExampleButtons();
 initTheme();
+restoreSpec();
 showPlaceholder("Loading WASM module...");
 
 // Deferred to idle time (falling back to a macrotask where
@@ -374,7 +413,11 @@ showPlaceholder("Loading WASM module...");
   loadWasm()
     .then(() => {
       setControlsEnabled(true);
-      showPlaceholder("Paste a spec or pick an example above to get started.");
+      if (specInput.value.trim() !== "") {
+        generate();
+      } else {
+        showPlaceholder("Paste a spec or pick an example above to get started.");
+      }
     })
     .catch((err) => {
       showError("Failed to load WASM module: " + (err && err.message ? err.message : String(err)));

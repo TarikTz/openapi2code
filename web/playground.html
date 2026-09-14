@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Playground — OpenAPI2Code</title>
+  <meta name="description" content="A full-page OpenAPI/Swagger to code playground. Paste a spec and get typed TypeScript, Zod, Swift, Kotlin, or Dart back, saved in your browser as you go.">
+  <link rel="canonical" href="https://openapi2code.com/playground.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://openapi2code.com/playground.html">
+  <meta property="og:site_name" content="OpenAPI2Code">
+  <meta property="og:title" content="Playground — OpenAPI2Code">
+  <meta property="og:description" content="A full-page OpenAPI/Swagger to code playground. Paste a spec and get typed TypeScript, Zod, Swift, Kotlin, or Dart back.">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Playground — OpenAPI2Code">
+  <meta name="twitter:description" content="A full-page OpenAPI/Swagger to code playground. Paste a spec and get typed TypeScript, Zod, Swift, Kotlin, or Dart back.">
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxMDE0MUMiLz48dGV4dCB4PSIzMiIgeT0iNDUiIGZvbnQtZmFtaWx5PSJ1aS1tb25vc3BhY2UsTWVubG8sbW9ub3NwYWNlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjRjBBOTRFIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj57fTwvdGV4dD48L3N2Zz4=">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Tailwind's Play CDN only generates classes it can see in the
+       markup; the highlighter builds these class names at runtime in
+       JS, so their colors are defined here as plain CSS instead. Kept
+       in sync with the same block in index.html. */
+    .tok-keyword { color: #a626a4; }
+    .tok-string  { color: #50a14f; }
+    .tok-number  { color: #986801; }
+    .tok-comment { color: #a0a1a7; font-style: italic; }
+    .tok-type    { color: #4078f2; }
+    .dark .tok-keyword { color: #c678dd; }
+    .dark .tok-string  { color: #98c379; }
+    .dark .tok-number  { color: #d19a66; }
+    .dark .tok-comment { color: #7f848e; font-style: italic; }
+    .dark .tok-type    { color: #61afef; }
+  </style>
+</head>
+<body class="bg-paper dark:bg-ink text-ink dark:text-paper font-sans antialiased min-h-screen flex flex-col" data-persist-spec="true">
+  <header class="shrink-0 flex items-center justify-between px-6 py-4 border-b border-ink/10 dark:border-paper/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <span class="font-mono text-xl font-semibold text-brace dark:text-brace-light" aria-hidden="true">{ }</span>
+      <span class="font-mono text-base font-medium tracking-tight">OpenAPI2Code</span>
+    </a>
+    <nav class="hidden sm:flex items-center gap-6 font-mono text-sm text-ink/70 dark:text-paper/70">
+      <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
+      <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
+      <a href="playground.html" class="hover:text-ink dark:hover:text-paper">Playground</a>
+    </nav>
+    <div class="flex items-center gap-1">
+      <a href="https://github.com/TarikTz/openapi2code" target="_blank" rel="noopener" aria-label="View source on GitHub"
+         class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      </a>
+      <button id="theme-toggle" type="button" aria-label="Toggle theme"
+              class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 hidden" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col min-h-0 max-w-6xl mx-auto px-6 py-6 gap-4 w-full">
+    <div class="shrink-0 flex flex-col gap-1">
+      <h1 class="font-mono text-2xl font-medium tracking-tight">Playground</h1>
+      <p class="text-sm text-ink/60 dark:text-paper/60">Paste an OpenAPI or Swagger spec below. It's saved in your browser as you type, so it's still here next time you open this page.</p>
+    </div>
+
+    <div class="shrink-0 relative inline-block">
+      <button id="examples-button" type="button" disabled
+              aria-haspopup="menu" aria-expanded="false"
+              class="inline-flex items-center gap-2 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono hover:bg-ink/5 dark:hover:bg-paper/10 disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
+        Examples
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div id="examples-menu" role="menu" hidden
+           class="absolute z-10 mt-1 w-80 max-w-[calc(100vw-3rem)] rounded-sm border border-ink/15 dark:border-paper/15 bg-paper dark:bg-ink shadow-lg overflow-hidden"></div>
+    </div>
+
+    <div class="flex-1 min-h-0 flex flex-col md:flex-row gap-4">
+      <section class="flex flex-col gap-3 md:flex-1 md:min-h-0">
+        <!-- Fetch-from-URL, occupying the same row slot the output
+             column's file-tabs/copy row does, so both panels still start
+             at the same vertical position. -->
+        <div class="shrink-0 flex items-center gap-2">
+          <input id="url-input" type="url" disabled placeholder="Or fetch from a URL..."
+                 class="flex-1 min-w-0 rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+          <button id="url-fetch-button" type="button" disabled
+                  class="shrink-0 rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            Fetch
+          </button>
+        </div>
+        <textarea id="spec-input" spellcheck="false" disabled
+                  placeholder="Paste an OpenAPI/Swagger spec (JSON or YAML)... or drop a file here"
+                  class="w-full flex-1 min-h-[50vh] md:min-h-0 font-mono text-sm p-3 border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light"></textarea>
+        <div class="shrink-0 flex items-center gap-3">
+          <select id="target-select" disabled aria-label="Generation target"
+                  class="rounded-sm border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] px-2 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            <option value="ts">TypeScript</option>
+            <option value="zod">Zod</option>
+            <option value="swift">Swift</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="dart">Dart</option>
+          </select>
+          <button id="modular-toggle" type="button" aria-pressed="false" disabled
+                  class="rounded-sm border border-ink/15 dark:border-paper/15 px-3 py-1 text-sm font-mono disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            Modular
+          </button>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-3 md:flex-1 md:min-h-0">
+        <div class="shrink-0 flex items-center justify-between">
+          <div id="file-tabs" class="flex flex-wrap gap-2"></div>
+          <button id="copy-button" type="button" aria-label="Copy to clipboard"
+                  class="p-2 rounded-sm hover:bg-ink/5 dark:hover:bg-paper/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brace dark:focus-visible:outline-brace-light">
+            <svg id="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <svg id="copy-icon-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 hidden" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+        </div>
+        <pre id="output" class="w-full flex-1 min-h-[50vh] md:min-h-0 overflow-auto border border-ink/15 dark:border-paper/15 bg-white dark:bg-paper/[0.03] p-3 text-sm"><code id="output-code" class="font-mono">Loading WASM module...</code></pre>
+      </section>
+    </div>
+  </main>
+
+  <footer class="shrink-0 border-t border-ink/10 dark:border-paper/10 px-6 py-8 text-sm text-ink/50 dark:text-paper/50 font-mono">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p><span class="text-brace dark:text-brace-light">{ }</span> OpenAPI2Code, a zero-dependency, multi-target OpenAPI/Swagger code generator.</p>
+      <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        <a href="use-cases.html" class="hover:text-ink dark:hover:text-paper">Use cases</a>
+        <a href="examples.html" class="hover:text-ink dark:hover:text-paper">Examples</a>
+        <a href="contact.html" class="hover:text-ink dark:hover:text-paper">Contact</a>
+        <a href="privacy.html" class="hover:text-ink dark:hover:text-paper">Privacy</a>
+        <a href="terms.html" class="hover:text-ink dark:hover:text-paper">Terms</a>
+        <a href="https://github.com/TarikTz/openapi2code" target="_blank" rel="noopener" aria-label="GitHub" class="hover:text-ink dark:hover:text-paper">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        </a>
+      </nav>
+    </div>
+  </footer>
+
+  <script defer src="wasm_exec.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
