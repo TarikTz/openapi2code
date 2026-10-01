@@ -1,6 +1,8 @@
 package engine_test
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -891,4 +893,140 @@ func sortedFileContents(files map[string]string) []string {
 		out = append(out, files[name])
 	}
 	return out
+}
+
+func TestGeneratePython_Monolithic(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "petstore.yaml"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	doc, err := engine.Parse(data)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	out, err := engine.GeneratePython(doc, engine.PythonOptions{Modular: false})
+	if err != nil {
+		t.Fatalf("GeneratePython: %v", err)
+	}
+	got, ok := out.Files["generated.py"]
+	if !ok {
+		t.Fatalf("monolithic output has no generated.py; files: %v", fileNames(out.Files))
+	}
+	if !strings.Contains(got, "from __future__ import annotations") {
+		t.Error("missing from __future__ import annotations header")
+	}
+	if !strings.Contains(got, "@dataclass") {
+		t.Error("missing @dataclass decorator")
+	}
+}
+
+func TestGeneratePydantic_Monolithic(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "petstore.yaml"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	doc, err := engine.Parse(data)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	out, err := engine.GeneratePydantic(doc, engine.PydanticOptions{Modular: false})
+	if err != nil {
+		t.Fatalf("GeneratePydantic: %v", err)
+	}
+	got, ok := out.Files["generated.py"]
+	if !ok {
+		t.Fatalf("monolithic output has no generated.py; files: %v", fileNames(out.Files))
+	}
+	if !strings.Contains(got, "from pydantic import BaseModel") {
+		t.Error("missing pydantic BaseModel import")
+	}
+}
+
+func TestGeneratePython_Modular_OneFilePerModelWithBarrel(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "petstore.yaml"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	doc, err := engine.Parse(data)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	out, err := engine.GeneratePython(doc, engine.PythonOptions{Modular: true})
+	if err != nil {
+		t.Fatalf("GeneratePython: %v", err)
+	}
+	if _, ok := out.Files["__init__.py"]; !ok {
+		t.Fatalf("modular output has no __init__.py barrel; files: %v", fileNames(out.Files))
+	}
+	// petstore.yaml has no $ref cycles, so every model gets its own file
+	// and there is no _cyclic.py.
+	if _, ok := out.Files["_cyclic.py"]; ok {
+		t.Error("petstore fixture has no cycles; did not expect _cyclic.py")
+	}
+	if len(out.Files) < 2 {
+		t.Fatalf("expected more than just the barrel, got files: %v", fileNames(out.Files))
+	}
+}
+
+func TestGeneratePython_Modular_CyclicModelsShareOneFile(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "circular.yaml"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	doc, err := engine.Parse(data)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	out, err := engine.GeneratePython(doc, engine.PythonOptions{Modular: true})
+	if err != nil {
+		t.Fatalf("GeneratePython: %v", err)
+	}
+	cyclicSrc, ok := out.Files["_cyclic.py"]
+	if !ok {
+		t.Fatalf("circular fixture should produce _cyclic.py; files: %v", fileNames(out.Files))
+	}
+	// No file should import from _cyclic.py's own models from within
+	// _cyclic.py itself (same-file references need no import), and no
+	// OTHER file should import two things that both live in _cyclic.py
+	// from each other (the only cross-file edges allowed point INTO
+	// _cyclic.py, never between two separate per-model files that are
+	// both part of the cycle).
+	if strings.Contains(cyclicSrc, "from ._cyclic import") {
+		t.Errorf("_cyclic.py should not import from itself:\n%s", cyclicSrc)
+	}
+	barrel := out.Files["__init__.py"]
+	if !strings.Contains(barrel, "from ._cyclic import") {
+		t.Errorf("barrel should re-export from _cyclic.py:\n%s", barrel)
+	}
+}
+
+func TestGeneratePython_Modular_CaseInsensitiveCollisionKeepsBothModels(t *testing.T) {
+	spec := `
+openapi: "3.0.0"
+info: {title: t, version: "1"}
+paths: {}
+components:
+  schemas:
+    Pet:
+      type: object
+      properties: {name: {type: string}}
+    pet:
+      type: object
+      properties: {id: {type: string}}
+`
+	doc, err := engine.Parse([]byte(spec))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	out, err := engine.GeneratePython(doc, engine.PythonOptions{Modular: true})
+	if err != nil {
+		t.Fatalf("GeneratePython: %v", err)
+	}
+	fileSet := map[string]bool{}
+	for f := range out.Files {
+		fileSet[f] = true
+	}
+	if !fileSet["Pet.py"] || !(fileSet["pet.py"] || fileSet["pet_2.py"]) {
+		t.Errorf("expected both Pet.py and a disambiguated pet file, got: %v", fileNames(out.Files))
+	}
 }
