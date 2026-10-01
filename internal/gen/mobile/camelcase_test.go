@@ -49,3 +49,20 @@ func TestToScreamingSnakeCase(t *testing.T) {
 		}
 	}
 }
+
+func TestToSnakeCase(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"photoUrls", "photo_urls"},
+		{"photo_urls", "photo_urls"},
+		{"photo-urls", "photo_urls"},
+		{"PhotoUrls", "photo_urls"},
+		{"ID", "id"},
+		{"userID", "user_id"},
+		{"", ""},
+	}
+	for _, c := range cases {
+		if got := mobile.ToSnakeCase(c.in); got != c.want {
+			t.Errorf("ToSnakeCase(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}

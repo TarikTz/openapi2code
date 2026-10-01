@@ -46,8 +46,26 @@ func ToPascalCase(name string) string {
 }
 
 // ToScreamingSnakeCase converts a JSON enum value into idiomatic
-// SCREAMING_SNAKE_CASE, as Kotlin enum constants conventionally use.
+// SCREAMING_SNAKE_CASE, as Kotlin enum constants and this project's
+// Python enum members both conventionally use.
 func ToScreamingSnakeCase(name string) string {
+	return strings.ToUpper(splitOnCaseTransitions(name))
+}
+
+// ToSnakeCase converts a JSON field or enum-value name (commonly
+// camelCase, PascalCase, or kebab-case in real-world APIs) into
+// idiomatic lower_snake_case, as Python attribute names conventionally
+// use. Shares its word-splitting with ToScreamingSnakeCase, differing
+// only in the final case of the result.
+func ToSnakeCase(name string) string {
+	return strings.ToLower(splitOnCaseTransitions(name))
+}
+
+// splitOnCaseTransitions inserts an underscore at every hyphen, space,
+// underscore, and every lowercase/digit-to-uppercase transition (so
+// "photoUrls" splits into "photo_Urls" before case-folding), leaving
+// case otherwise untouched for the caller to fold.
+func splitOnCaseTransitions(name string) string {
 	var sb strings.Builder
 	runes := []rune(name)
 	for i, r := range runes {
@@ -61,7 +79,7 @@ func ToScreamingSnakeCase(name string) string {
 			sb.WriteRune(r)
 		}
 	}
-	return strings.ToUpper(sb.String())
+	return sb.String()
 }
 
 func isLowerOrDigit(r rune) bool {
