@@ -52,6 +52,8 @@ check("zod modular", globalThis.openapi2codeGenerate(spec, "zod", true), "export
 check("swift monolithic", globalThis.openapi2codeGenerate(spec, "swift", false), "public struct Pet: Codable {");
 check("kotlin modular", globalThis.openapi2codeGenerate(spec, "kotlin", true), "data class Pet(");
 check("dart modular", globalThis.openapi2codeGenerate(spec, "dart", true), "class Pet {");
+check("python modular", globalThis.openapi2codeGenerate(spec, "python", true), "class Pet:");
+check("pydantic modular", globalThis.openapi2codeGenerate(spec, "pydantic", true), "class Pet(BaseModel):");
 
 const errRaw = globalThis.openapi2codeGenerate("", "ts", false);
 const errResult = JSON.parse(errRaw);

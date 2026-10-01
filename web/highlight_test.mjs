@@ -104,6 +104,24 @@ assertContains(
   '<span class="tok-type">Pet</span>'
 );
 
+// --- python (also covers pydantic output, which shares the .py extension) ---
+
+assertContains(
+  "python keyword",
+  highlightCode("class Pet:", "python"),
+  '<span class="tok-keyword">class</span>'
+);
+assertContains(
+  "python type name",
+  highlightCode("class Pet:", "python"),
+  '<span class="tok-type">Pet</span>'
+);
+assertContains(
+  "pydantic BaseModel renders as a type name",
+  highlightCode("class Pet(BaseModel):", "python"),
+  '<span class="tok-type">BaseModel</span>'
+);
+
 // --- unrecognized language falls back to ts ---
 
 assertContains(
@@ -117,6 +135,7 @@ assertContains(
 assertEqual("languageForFile .swift", languageForFile("Pet.swift"), "swift");
 assertEqual("languageForFile .kt", languageForFile("Pet.kt"), "kotlin");
 assertEqual("languageForFile .dart", languageForFile("pet.dart"), "dart");
+assertEqual("languageForFile .py", languageForFile("Pet.py"), "python");
 assertEqual("languageForFile .ts", languageForFile("index.ts"), "ts");
 assertEqual("languageForFile unknown extension falls back to ts", languageForFile("Generated"), "ts");
 

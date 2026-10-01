@@ -76,6 +76,22 @@ func TestGenerate_TargetAndLayoutDispatch(t *testing.T) {
 			name: "dart modular", target: "dart", modular: true,
 			wantFile: "pet.dart", wantString: "class Pet {",
 		},
+		{
+			name: "python monolithic", target: "python", modular: false,
+			wantFile: "generated.py", wantString: "class Pet:", absentFile: "Pet.py",
+		},
+		{
+			name: "python modular", target: "python", modular: true,
+			wantFile: "Pet.py", wantString: "class Pet:",
+		},
+		{
+			name: "pydantic monolithic", target: "pydantic", modular: false,
+			wantFile: "generated.py", wantString: "class Pet(BaseModel):", absentFile: "Pet.py",
+		},
+		{
+			name: "pydantic modular", target: "pydantic", modular: true,
+			wantFile: "Pet.py", wantString: "class Pet(BaseModel):",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

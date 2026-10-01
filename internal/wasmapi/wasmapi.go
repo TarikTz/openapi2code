@@ -12,15 +12,15 @@ import (
 )
 
 // Generate parses specText and generates code for target ("ts", "zod",
-// "swift", "kotlin", or "dart"), in monolithic or modular layout per
-// modular.
+// "swift", "kotlin", "dart", "python", or "pydantic"), in monolithic or
+// modular layout per modular.
 func Generate(specText string, target string, modular bool) (engine.Output, error) {
 	// Validate the target before parsing. Otherwise, when both the target
 	// and the spec are bad, the parse error wins and the caller is never
 	// told that the target they picked isn't supported at all — a confusing
 	// answer, since no spec would have made that target work.
 	switch target {
-	case "ts", "zod", "swift", "kotlin", "dart":
+	case "ts", "zod", "swift", "kotlin", "dart", "python", "pydantic":
 	default:
 		return engine.Output{}, unsupportedTargetError(target)
 	}
@@ -40,6 +40,10 @@ func Generate(specText string, target string, modular bool) (engine.Output, erro
 		return engine.GenerateKotlin(doc, engine.KotlinOptions{Modular: modular})
 	case "dart":
 		return engine.GenerateDart(doc, engine.DartOptions{Modular: modular})
+	case "python":
+		return engine.GeneratePython(doc, engine.PythonOptions{Modular: modular})
+	case "pydantic":
+		return engine.GeneratePydantic(doc, engine.PydanticOptions{Modular: modular})
 	default:
 		// Unreachable: target was validated above.
 		return engine.Output{}, unsupportedTargetError(target)
@@ -47,5 +51,5 @@ func Generate(specText string, target string, modular bool) (engine.Output, erro
 }
 
 func unsupportedTargetError(target string) error {
-	return fmt.Errorf("target %q not supported (only \"ts\", \"zod\", \"swift\", \"kotlin\", and \"dart\" are currently supported)", target)
+	return fmt.Errorf("target %q not supported (only \"ts\", \"zod\", \"swift\", \"kotlin\", \"dart\", \"python\", and \"pydantic\" are currently supported)", target)
 }

@@ -1,10 +1,10 @@
 // highlight.js — a minimal regex-based syntax highlighter for the
 // languages this project generates. Not a general-purpose highlighter
 // for any of them: it only needs to handle what internal/gen/{ts,zod,
-// swift,kotlin,dart} actually emit (declarations, simple control flow,
-// string/enum literals, comments, numbers) — each language's keyword
-// list below was pulled directly from what its generator's templates
-// use, not from the full language grammar.
+// swift,kotlin,dart,python} actually emit (declarations, simple control
+// flow, string/enum literals, comments, numbers) — each language's
+// keyword list below was pulled directly from what its generator's
+// templates use, not from the full language grammar.
 
 const KEYWORDS_BY_LANG = {
   ts: new Set([
@@ -29,6 +29,10 @@ const KEYWORDS_BY_LANG = {
     "final", "for", "if", "import", "in", "is", "null", "required",
     "return", "static", "this", "true", "var", "void",
   ]),
+  python: new Set([
+    "and", "as", "class", "def", "else", "Enum", "False", "from", "if",
+    "import", "in", "is", "None", "not", "or", "pass", "return", "True",
+  ]),
 };
 
 // languageForFile maps a generated file's name to a highlighter language
@@ -40,6 +44,7 @@ export function languageForFile(filename) {
   if (filename.endsWith(".swift")) return "swift";
   if (filename.endsWith(".kt")) return "kotlin";
   if (filename.endsWith(".dart")) return "dart";
+  if (filename.endsWith(".py")) return "python";
   return "ts";
 }
 
