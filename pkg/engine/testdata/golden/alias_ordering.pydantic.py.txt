@@ -1,0 +1,19 @@
+from __future__ import annotations
+from pydantic import BaseModel, ConfigDict, Field
+
+class Pet(BaseModel):
+    id: str = Field(alias="_id")
+    name: str | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+AllPets = list[Pet]
+
+AllPetPages = list[AllPets]
+
+PetIndex = dict[str, Pet]
+
+class ItemsItem(BaseModel):
+    id: str | None = None
+
+Items = list[ItemsItem]

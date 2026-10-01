@@ -1,0 +1,19 @@
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(kw_only=True)
+class Pet:
+    _id: str
+    name: str | None = None
+
+AllPets = list[Pet]
+
+AllPetPages = list[AllPets]
+
+PetIndex = dict[str, Pet]
+
+@dataclass(kw_only=True)
+class ItemsItem:
+    id: str | None = None
+
+Items = list[ItemsItem]

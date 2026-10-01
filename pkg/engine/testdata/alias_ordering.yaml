@@ -1,0 +1,44 @@
+openapi: "3.0.3"
+info:
+  title: Alias ordering fixture
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    # Top-level array of a $ref whose name sorts before its target: the
+    # Python alias assignment must still be emitted after class Pet.
+    AllPets:
+      type: array
+      items:
+        $ref: "#/components/schemas/Pet"
+    # An alias of an alias: must follow AllPets, which must follow Pet.
+    AllPetPages:
+      type: array
+      items:
+        $ref: "#/components/schemas/AllPets"
+    # Top-level array of an inline object: the synthesized item class is
+    # discovered while rendering this alias, so it is always appended
+    # after it unless reordered.
+    Items:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+    # Top-level map of a $ref.
+    PetIndex:
+      type: object
+      additionalProperties:
+        $ref: "#/components/schemas/Pet"
+    Pet:
+      type: object
+      required:
+        - _id
+      properties:
+        # Underscore-prefixed wire name: a Pydantic private attribute
+        # unless renamed and aliased.
+        _id:
+          type: string
+        name:
+          type: string

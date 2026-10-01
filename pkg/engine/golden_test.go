@@ -216,9 +216,11 @@ func TestGoldenFixtures_Dart(t *testing.T) {
 // TestGoldenFixtures_Python golden-tests Python dataclass monolithic
 // output for the same fixtures already used to exercise TS's
 // union/enum/cyclic/allOf handling, comparing against
-// testdata/golden/<fixture>.py.txt.
+// testdata/golden/<fixture>.py.txt. alias_ordering additionally pins the
+// declaration order of top-level alias assignments (see
+// topoSortModelOutputs).
 func TestGoldenFixtures_Python(t *testing.T) {
-	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types"}
+	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types", "alias_ordering"}
 	for _, name := range fixtures {
 		name := name
 		t.Run(name, func(t *testing.T) {
@@ -250,7 +252,7 @@ func TestGoldenFixtures_Python(t *testing.T) {
 // output for the same fixtures, comparing against
 // testdata/golden/<fixture>.pydantic.py.txt.
 func TestGoldenFixtures_Pydantic(t *testing.T) {
-	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types"}
+	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types", "alias_ordering"}
 	for _, name := range fixtures {
 		name := name
 		t.Run(name, func(t *testing.T) {

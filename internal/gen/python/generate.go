@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/tarikomercehajic/openapi2code/internal/gen/mobile"
 	"github.com/tarikomercehajic/openapi2code/internal/ir"
@@ -14,7 +15,7 @@ import (
 // dataclasses, or Pydantic BaseModel subclasses. The two share every
 // type-mapping, naming, and declaration-ordering rule below, differing
 // only in class header, field default/alias syntax, and imports (see
-// renderObjectDecl in generate_object.go, added by Task 4).
+// renderObjectDecl).
 type Style int
 
 const (
@@ -30,18 +31,33 @@ const (
 // explicit import between files in modular output. Imports lists the
 // literal import lines (e.g. "from enum import Enum") this declaration
 // alone needs, independent of Dependencies.
+//
+// Alias is true when Declaration is a module-level assignment (e.g.
+// `AllPets = list[Pet]`) rather than a class or Enum. The distinction
+// matters for declaration order within one file: `from __future__ import
+// annotations` defers evaluation of a class's field annotations, so
+// classes may reference each other (and aliases) in any order, but an
+// assignment's right-hand side is evaluated the moment the module runs
+// that line — every name in Dependencies must already be defined above
+// it, or importing the module raises NameError.
+//
+// Unsupported is true when Declaration is only the explanatory comment
+// emitted for a schema shape with no Python representation; it defines
+// no Python name, so nothing may import or re-export Name.
 type ModelOutput struct {
 	Name         string
 	Declaration  string
 	Dependencies []string
 	Imports      []string
+	Alias        bool
+	Unsupported  bool
 }
 
 type extraDecl = mobile.PendingDecl
 
 // typeResult is resolveType's return: a Python type expression plus
 // everything a caller building a ModelOutput needs to aggregate across
-// every field of an object (see resolveFields in generate_object.go).
+// every field of an object (see resolveFields).
 type typeResult struct {
 	Expr    string
 	Skip    bool
@@ -162,7 +178,24 @@ func (r *renderer) nodeIsUnsupported(node *ir.Node, visited map[string]bool) boo
 // place of name's real declaration when its shape has no clean Python
 // representation. Wording matches Swift/Kotlin/Dart's identical helper.
 func unsupportedShapeComment(name string) string {
-	return fmt.Sprintf("# %s was not generated for the Python target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).\n", name)
+	return fmt.Sprintf("# %s was not generated for the Python target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).\n", commentSafe(name))
+}
+
+// commentSafe makes s safe to interpolate into a single-line `#` comment.
+// JSON property names may legally contain line breaks, and the spec may
+// come from an untrusted remote URL: a raw "\n" would end the comment and
+// let the rest of the name run as Python code when the generated module is
+// imported. Every control character (which covers \n, \r, NUL — a NUL
+// byte makes the whole file unparseable — and the C1 range including
+// U+0085) and the Unicode line/paragraph separators U+2028/U+2029 is
+// replaced with a space, so the comment always stays on one physical line.
+func commentSafe(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) || r == '\u2028' || r == '\u2029' {
+			return ' '
+		}
+		return r
+	}, s)
 }
 
 func renderPrimitive(p ir.Primitive) string {
@@ -185,7 +218,7 @@ func renderPrimitive(p ir.Primitive) string {
 // literal syntax. Mirrors internal/gen/swift/generate.go's
 // swiftEnumBacking, adapted to Python's (str, Enum)/(int, Enum)/(float,
 // Enum) mixin convention. PrimitiveBoolean never reaches here (see
-// resolveType's and renderDeclaration's bypass, added in Task 4).
+// resolveType's and renderDeclaration's boolean-enum bypass).
 func pythonEnumBacking(p ir.Primitive) (baseClass string, formatLiteral func(v string) string) {
 	switch p {
 	case ir.PrimitiveInteger, ir.PrimitiveNumber:
@@ -302,6 +335,14 @@ func (r *renderer) flattenExtendsTarget(modelName string, visited map[string]boo
 // internal/gen/swift/generate.go's resolveFields.
 func (r *renderer) resolveFields(containingTypeName string, fields []*ir.Field) (resolved []resolvedField, deps []string, imports []string, allExtra []extraDecl, skipped []string) {
 	used := make(map[string]bool, len(fields))
+	// plainNames holds every field identifier that needs no Pydantic
+	// underscore rewrite (see pydanticPublicFieldName).
+	plainNames := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		if n := SanitizeFieldIdentifier(f.Name); !strings.HasPrefix(n, "_") {
+			plainNames[n] = true
+		}
+	}
 	for _, f := range fields {
 		suggested := containingTypeName + mobile.ToPascalCase(f.Name)
 		res, extra := r.resolveType(f.Type, suggested)
@@ -314,7 +355,22 @@ func (r *renderer) resolveFields(containingTypeName string, fields []*ir.Field) 
 		if optional {
 			typeExpr += " | None"
 		}
-		propertyName := mobile.Uniquify(SanitizeFieldIdentifier(f.Name), used)
+		base := SanitizeFieldIdentifier(f.Name)
+		taken := used
+		if r.style == Pydantic && strings.HasPrefix(base, "_") {
+			base = pydanticPublicFieldName(base)
+			// A rewritten name yields to a field that sanitizes to it
+			// naturally: with both "_id" and "id", "id" keeps its own
+			// name and "_id" becomes "id_2", not the other way round.
+			taken = make(map[string]bool, len(used)+len(plainNames))
+			for n := range used {
+				taken[n] = true
+			}
+			for n := range plainNames {
+				taken[n] = true
+			}
+		}
+		propertyName := mobile.Uniquify(base, taken)
 		used[propertyName] = true
 		resolved = append(resolved, resolvedField{
 			propertyName: propertyName,
@@ -330,12 +386,38 @@ func (r *renderer) resolveFields(containingTypeName string, fields []*ir.Field) 
 	return resolved, deps, imports, allExtra, skipped
 }
 
+// pydanticPublicFieldName rewrites an already-sanitized field identifier
+// so it does not start with an underscore. Pydantic v2 treats any
+// underscore-prefixed class attribute as a private attribute rather than a
+// model field — excluded from validation, serialization and the schema —
+// so a wire field like "_id" (MongoDB) or "_links" (HAL) would otherwise
+// vanish silently. The leading underscores are stripped ("_id" -> "id");
+// if what remains is empty or starts with a digit (e.g. "2fa", which
+// sanitizes to "_2fa"), it is prefixed with "field_" instead. The result
+// always differs from the wire name, so the caller's existing alias
+// machinery (Field(alias=...) plus populate_by_name) keeps the wire
+// format intact. A collision with another field (e.g. both "_id" and
+// "id") is resolved in resolveFields, which suffixes the rewritten name.
+func pydanticPublicFieldName(name string) string {
+	if !strings.HasPrefix(name, "_") {
+		return name
+	}
+	stripped := strings.TrimLeft(name, "_")
+	if stripped == "" {
+		return "field"
+	}
+	if stripped[0] >= '0' && stripped[0] <= '9' {
+		return "field_" + stripped
+	}
+	return sanitize(stripped)
+}
+
 // renderObjectDecl renders o as a Python class for the renderer's style.
 // kw_only=True on the dataclass form sidesteps Python's "non-default
 // argument follows default argument" rule entirely, regardless of field
-// order — see this plan's Global Constraints for why reordering fields
-// instead was rejected (it would also make generated field order diverge
-// from the schema's declared order, which the other targets preserve).
+// order. Reordering fields (required first) would also avoid that error,
+// but would make generated field order diverge from the schema's declared
+// order, which every other target preserves.
 func (r *renderer) renderObjectDecl(name string, o *ir.ObjectNode) (string, []string, []string, []extraDecl) {
 	fields, deps, fieldImports, extra, skipped := r.resolveFields(name, r.flattenFields(o))
 	anyAliased := false
@@ -382,7 +464,7 @@ func (r *renderer) renderObjectDecl(name string, o *ir.ObjectNode) (string, []st
 		}
 	}
 	for _, wireName := range skipped {
-		fmt.Fprintf(&sb, "    # %s: skipped — unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type)\n", wireName)
+		fmt.Fprintf(&sb, "    # %s: skipped — unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type)\n", commentSafe(wireName))
 	}
 	if r.style == Pydantic && anyAliased {
 		sb.WriteString("\n    model_config = ConfigDict(populate_by_name=True)\n")
@@ -395,37 +477,39 @@ func (r *renderer) renderObjectDecl(name string, o *ir.ObjectNode) (string, []st
 // name. Mirrors internal/gen/swift/generate.go's renderDeclaration
 // structure; the ir.KindArray/ir.KindMap/ir.KindRef cases render a plain
 // `Name = <expr>` assignment, which both serves as a valid runtime type
-// alias and needs no "TypeAlias" import.
-func (r *renderer) renderDeclaration(name string, node *ir.Node) (decl string, deps []string, imports []string, extra []extraDecl) {
+// alias and needs no "TypeAlias" import. alias reports whether decl is
+// such an assignment (see ModelOutput.Alias for why callers care).
+func (r *renderer) renderDeclaration(name string, node *ir.Node) (decl string, deps []string, imports []string, extra []extraDecl, alias bool) {
 	switch node.Kind {
 	case ir.KindObject:
-		return r.renderObjectDecl(name, node.Object)
+		decl, deps, imports, extra = r.renderObjectDecl(name, node.Object)
+		return decl, deps, imports, extra, false
 	case ir.KindEnum:
 		if node.Enum.Primitive == ir.PrimitiveBoolean {
-			return fmt.Sprintf("%s = bool\n", name), nil, nil, nil
+			return fmt.Sprintf("%s = bool\n", name), nil, nil, nil, true
 		}
-		return renderEnumDecl(name, node.Enum), nil, []string{"from enum import Enum"}, nil
+		return renderEnumDecl(name, node.Enum), nil, []string{"from enum import Enum"}, nil, false
 	case ir.KindUnion, ir.KindIntersection:
-		return unsupportedShapeComment(name), nil, nil, nil
+		return unsupportedShapeComment(name), nil, nil, nil, false
 	case ir.KindPrimitive:
 		if node.Primitive == ir.PrimitiveUnknown {
-			return unsupportedShapeComment(name), nil, nil, nil
+			return unsupportedShapeComment(name), nil, nil, nil, false
 		}
-		return fmt.Sprintf("%s = %s\n", name, renderPrimitive(node.Primitive)), nil, nil, nil
+		return fmt.Sprintf("%s = %s\n", name, renderPrimitive(node.Primitive)), nil, nil, nil, true
 	case ir.KindArray, ir.KindMap:
 		res, extra := r.resolveType(node, name+"Item")
 		if res.Skip {
-			return unsupportedShapeComment(name), nil, nil, nil
+			return unsupportedShapeComment(name), nil, nil, nil, false
 		}
-		return fmt.Sprintf("%s = %s\n", name, res.Expr), res.Deps, res.Imports, extra
+		return fmt.Sprintf("%s = %s\n", name, res.Expr), res.Deps, res.Imports, extra, true
 	case ir.KindRef:
 		if r.refIsUnsupported(node.RefName, map[string]bool{}) {
-			return unsupportedShapeComment(name), nil, nil, nil
+			return unsupportedShapeComment(name), nil, nil, nil, false
 		}
 		target := r.nameFor(node.RefName)
-		return fmt.Sprintf("%s = %s\n", name, target), []string{target}, nil, nil
+		return fmt.Sprintf("%s = %s\n", name, target), []string{target}, nil, nil, true
 	default:
-		return "", nil, nil, nil
+		return "", nil, nil, nil, false
 	}
 }
 
@@ -455,7 +539,7 @@ func Generate(doc *ir.Document, style Style) ([]ModelOutput, error) {
 	var outputs []ModelOutput
 	for i := 0; i < len(queue); i++ {
 		item := queue[i]
-		decl, deps, imports, extra := r.renderDeclaration(item.Name, item.Node)
+		decl, deps, imports, extra, alias := r.renderDeclaration(item.Name, item.Node)
 		if decl == "" {
 			continue
 		}
@@ -464,6 +548,8 @@ func Generate(doc *ir.Document, style Style) ([]ModelOutput, error) {
 			Declaration:  decl,
 			Dependencies: removeName(dedupeSorted(deps), item.Name),
 			Imports:      dedupeSorted(imports),
+			Alias:        alias,
+			Unsupported:  decl == unsupportedShapeComment(item.Name),
 		})
 		queue = append(queue, extra...)
 	}

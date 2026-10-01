@@ -9,6 +9,13 @@ func TestSanitizeTypeIdentifier(t *testing.T) {
 		{"2FA", "_2FA"},
 		{"Pet-Status", "Pet_Status"},
 		{"", "_"},
+		// Names the generated files import must not be shadowed.
+		{"Field", "Field_"},
+		{"BaseModel", "BaseModel_"},
+		{"ConfigDict", "ConfigDict_"},
+		{"Enum", "Enum_"},
+		{"dataclass", "dataclass_"},
+		{"FieldSet", "FieldSet"},
 	}
 	for _, c := range cases {
 		if got := SanitizeTypeIdentifier(c.in); got != c.want {

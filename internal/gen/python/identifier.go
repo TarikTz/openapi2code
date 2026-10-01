@@ -40,12 +40,26 @@ func sanitize(name string) string {
 	return sanitized
 }
 
+// importedNames are the module-level names generated files import (see
+// renderObjectDecl and renderDeclaration). A top-level declaration with
+// one of these names would rebind it, breaking every later class that
+// uses the import (e.g. a schema named "Field" shadowing pydantic.Field).
+var importedNames = map[string]bool{
+	"BaseModel": true, "ConfigDict": true, "Field": true,
+	"Enum": true, "dataclass": true,
+}
+
 // SanitizeTypeIdentifier converts a model or synthesized type name into a
 // valid Python class identifier. Casing is left as-is: OpenAPI schema
 // names and this package's own synthesized names (see resolveType) are
-// already PascalCase.
+// already PascalCase. A name that would shadow one of importedNames gets
+// a trailing underscore, the same treatment a keyword gets.
 func SanitizeTypeIdentifier(name string) string {
-	return sanitize(name)
+	sanitized := sanitize(name)
+	if importedNames[sanitized] {
+		sanitized += "_"
+	}
+	return sanitized
 }
 
 // SanitizeFieldIdentifier converts a JSON field name into a valid,

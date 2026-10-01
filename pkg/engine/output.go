@@ -486,14 +486,18 @@ type PythonOptions struct {
 // opts.
 //
 //   - Monolithic (opts.Modular false): exactly one file, keyed
-//     "generated.py", holding every model's declaration in name-sorted
-//     order, preceded by "from __future__ import annotations" and the
-//     union of every declaration's own Imports.
-//   - Modular (opts.Modular true): one file per non-cyclic model, keyed
-//     "<Name>.py"; every model flagged ir.Model.Cyclic in doc is instead
-//     grouped into one shared "_cyclic.py" file (see modularPythonOutput's
-//     doc comment for why); plus an "__init__.py" barrel re-exporting
-//     every model from whichever file it landed in.
+//     "generated.py", holding every declaration in python.Generate's order
+//     (doc.Models name-sorted, then synthesized declarations), except that
+//     an alias assignment is moved after every declaration it names (see
+//     topoSortModelOutputs); preceded by "from __future__ import
+//     annotations" and the merged union of every declaration's Imports.
+//   - Modular (opts.Modular true): one file per non-cyclic declaration,
+//     keyed "<Name>.py"; every declaration on a dependency cycle (computed
+//     from the generated declarations, including synthesized ones — see
+//     cyclicModelNames and cyclicFileMembers) is instead grouped into one
+//     shared "_cyclic.py" file (see modularPythonOutput's doc comment for
+//     why); plus an "__init__.py" barrel re-exporting every declaration
+//     from whichever file it landed in.
 func GeneratePython(doc *ir.Document, opts PythonOptions) (Output, error) {
 	return generatePythonFamily(doc, python.Dataclass, opts.Modular)
 }
@@ -518,44 +522,215 @@ func generatePythonFamily(doc *ir.Document, style python.Style, modular bool) (O
 	if err != nil {
 		return Output{}, err
 	}
-	// Build resolvedName -> cyclic directly from doc.Models: a
-	// synthesized (inline enum/object) declaration has no doc.Models
-	// entry at all and is never part of a $ref cycle (see
-	// nodeIsUnsupported's doc comment in internal/gen/python/generate.go
-	// for why), so it's correctly left out of resolvedCyclic here.
-	resolvedCyclic := make(map[string]bool, len(doc.Models))
-	for _, m := range doc.Models {
-		if m.Cyclic {
-			resolvedCyclic[pythonResolvedName(doc, models, m.Name)] = true
-		}
-	}
 	if modular {
-		return modularPythonOutput(models, resolvedCyclic), nil
+		return modularPythonOutput(models, cyclicFileMembers(models, cyclicModelNames(models))), nil
 	}
 	return monolithicPythonOutput(models), nil
 }
 
-// pythonResolvedName returns the resolved Python identifier for the
-// top-level model whose IR name is irName. python.Generate seeds its
-// render queue from doc.Models, in order, before appending any
-// synthesized (inline enum/object) entry, and every top-level model
-// always produces exactly one declaration (renderDeclaration never
-// returns an empty string for a doc.Models entry — only a *field's*
-// unsupported type is skipped, never a whole top-level model) — so
-// models[i] corresponds to doc.Models[i] for every i < len(doc.Models).
-func pythonResolvedName(doc *ir.Document, models []python.ModelOutput, irName string) string {
-	for i, m := range doc.Models {
-		if m.Name == irName {
-			return models[i].Name
+// cyclicModelNames returns the name of every declaration in models that
+// lies on a dependency cycle: a member of a strongly connected component
+// of size > 1, or a declaration that depends on itself directly.
+//
+// Cycle membership is computed from the generated declarations'
+// Dependencies rather than from ir.Model.Cyclic because the IR flag only
+// exists on a document's own top-level schemas. python.Generate also
+// synthesizes declarations for inline objects/enums, and such a
+// declaration can be a genuine link in a cycle — e.g. Node has an inline
+// object field synthesized as NodeChildren, which itself $refs Node.
+// Only the generated dependency graph sees that edge.
+//
+// Tarjan's algorithm, visiting declarations and their dependencies in
+// input order. A dependency naming no declaration in models is ignored.
+func cyclicModelNames(models []python.ModelOutput) map[string]bool {
+	indexOf := make(map[string]int, len(models))
+	for i, m := range models {
+		indexOf[m.Name] = i
+	}
+	const unvisited = -1
+	index := make([]int, len(models))
+	lowlink := make([]int, len(models))
+	onStack := make([]bool, len(models))
+	for i := range index {
+		index[i] = unvisited
+	}
+	var stack []int
+	next := 0
+	cyclic := map[string]bool{}
+
+	var strongConnect func(v int)
+	strongConnect = func(v int) {
+		index[v] = next
+		lowlink[v] = next
+		next++
+		stack = append(stack, v)
+		onStack[v] = true
+		for _, dep := range models[v].Dependencies {
+			w, ok := indexOf[dep]
+			if !ok {
+				continue
+			}
+			if w == v {
+				cyclic[models[v].Name] = true
+				continue
+			}
+			if index[w] == unvisited {
+				strongConnect(w)
+				lowlink[v] = min(lowlink[v], lowlink[w])
+			} else if onStack[w] {
+				lowlink[v] = min(lowlink[v], index[w])
+			}
+		}
+		if lowlink[v] != index[v] {
+			return
+		}
+		// v is the root of an SCC: pop it off the stack.
+		var component []int
+		for {
+			w := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			onStack[w] = false
+			component = append(component, w)
+			if w == v {
+				break
+			}
+		}
+		if len(component) > 1 {
+			for _, w := range component {
+				cyclic[models[w].Name] = true
+			}
 		}
 	}
-	return irName
+	for v := range models {
+		if index[v] == unvisited {
+			strongConnect(v)
+		}
+	}
+	return cyclic
+}
+
+// cyclicFileMembers returns the set of declarations modular output must
+// place in the shared "_cyclic.py" file: every declaration in cyclic, plus
+// every other declaration that is both reachable from that set and able
+// to reach it.
+//
+// The extra members are needed because bundling every cycle into one
+// file contracts all of them into a single node of the file-level import
+// graph, which can create a cycle the declaration graph didn't have. With
+// two unrelated cycles {A, B} and {C, D} and a non-cyclic M where A -> M
+// -> C, _cyclic.py would import M.py while M.py imports _cyclic.py — a
+// circular ImportError. Pulling such an M into _cyclic.py as well removes
+// it: any remaining file-level cycle would have to pass through the
+// contracted node via declarations outside it, and those are exactly the
+// ones added here.
+func cyclicFileMembers(models []python.ModelOutput, cyclic map[string]bool) map[string]bool {
+	if len(cyclic) == 0 {
+		return cyclic
+	}
+	forward := make(map[string][]string, len(models))
+	reverse := make(map[string][]string, len(models))
+	for _, m := range models {
+		for _, dep := range m.Dependencies {
+			forward[m.Name] = append(forward[m.Name], dep)
+			reverse[dep] = append(reverse[dep], m.Name)
+		}
+	}
+	reachable := func(edges map[string][]string) map[string]bool {
+		seen := make(map[string]bool, len(cyclic))
+		var queue []string
+		for name := range cyclic {
+			seen[name] = true
+			queue = append(queue, name)
+		}
+		for len(queue) > 0 {
+			n := queue[0]
+			queue = queue[1:]
+			for _, next := range edges[n] {
+				if !seen[next] {
+					seen[next] = true
+					queue = append(queue, next)
+				}
+			}
+		}
+		return seen
+	}
+	fromCyclic, toCyclic := reachable(forward), reachable(reverse)
+	members := make(map[string]bool, len(cyclic))
+	for _, m := range models {
+		if cyclic[m.Name] || (fromCyclic[m.Name] && toCyclic[m.Name]) {
+			members[m.Name] = true
+		}
+	}
+	return members
+}
+
+// topoSortModelOutputs orders declarations so that every alias assignment
+// (ModelOutput.Alias) comes after each declaration it names — the only
+// ordering constraint a Python file has here, since a class's or Enum's
+// field annotations are deferred by `from __future__ import annotations`
+// but an assignment's right-hand side runs immediately. Without it, a
+// name-sorted file like `AllPets = list[Pet]` ahead of `class Pet` raises
+// NameError on import; so does a top-level array of an inline object,
+// whose synthesized item class is always appended after the alias.
+//
+// The sort is stable (Kahn's algorithm, always taking the earliest ready
+// declaration in input order), so unconstrained declarations keep
+// python.Generate's order. Alias-only cycles cannot be expressed in Python
+// at all; if one occurs, the unresolvable remainder is emitted in input
+// order rather than looping or dropping declarations.
+func topoSortModelOutputs(models []python.ModelOutput) []python.ModelOutput {
+	indexOf := make(map[string]int, len(models))
+	for i, m := range models {
+		indexOf[m.Name] = i
+	}
+	dependents := make([][]int, len(models))
+	indegree := make([]int, len(models))
+	for i, m := range models {
+		if !m.Alias {
+			continue
+		}
+		for _, dep := range m.Dependencies {
+			j, ok := indexOf[dep]
+			if !ok || j == i {
+				continue
+			}
+			dependents[j] = append(dependents[j], i)
+			indegree[i]++
+		}
+	}
+
+	sorted := make([]python.ModelOutput, 0, len(models))
+	emitted := make([]bool, len(models))
+	for len(sorted) < len(models) {
+		next := -1
+		for i := range models {
+			if !emitted[i] && indegree[i] == 0 {
+				next = i
+				break
+			}
+		}
+		if next == -1 {
+			for i := range models {
+				if !emitted[i] {
+					emitted[i] = true
+					sorted = append(sorted, models[i])
+				}
+			}
+			break
+		}
+		emitted[next] = true
+		sorted = append(sorted, models[next])
+		for _, d := range dependents[next] {
+			indegree[d]--
+		}
+	}
+	return sorted
 }
 
 func monolithicPythonOutput(models []python.ModelOutput) Output {
 	var imports []string
 	var sb strings.Builder
-	for i, m := range models {
+	for i, m := range topoSortModelOutputs(models) {
 		imports = append(imports, m.Imports...)
 		if i > 0 {
 			sb.WriteString("\n")
@@ -564,7 +739,7 @@ func monolithicPythonOutput(models []python.ModelOutput) Output {
 	}
 	var header strings.Builder
 	header.WriteString("from __future__ import annotations\n")
-	for _, imp := range dedupeSortedStrings(imports) {
+	for _, imp := range mergePythonImports(imports) {
 		header.WriteString(imp)
 		header.WriteString("\n")
 	}
@@ -575,9 +750,9 @@ func monolithicPythonOutput(models []python.ModelOutput) Output {
 
 // modularPythonOutput writes one file per non-cyclic model (keyed
 // "<Name>.py", case-insensitively uniquified like modularSwiftOutput),
-// groups every cyclic-flagged model into one shared "_cyclic.py" file,
-// and writes an "__init__.py" barrel re-exporting every model regardless
-// of which file it landed in.
+// groups every model in cyclic (see cyclicFileMembers) into one shared
+// "_cyclic.py" file, and writes an "__init__.py" barrel re-exporting
+// every model regardless of which file it landed in.
 //
 // The cyclic grouping exists because Python raises ImportError on a
 // genuine circular top-level import ("from .a import A" at the top of
@@ -587,11 +762,10 @@ func monolithicPythonOutput(models []python.ModelOutput) Output {
 // modularDartOutput's one-file-per-model approach cannot be copied
 // as-is. Bundling every cycle member into one file sidesteps the problem
 // entirely: references between declarations in the SAME file need no
-// import at all. This is deliberately coarser than computing each
-// cycle's actual connected component (every cyclic model in the whole
-// document lands in one shared file, even if the document has two
-// unrelated cycles) — correct, just less finely split than it could be;
-// splitting further is not required by the design spec.
+// import at all. This is deliberately coarser than one file per cycle
+// (every cyclic model in the whole document lands in one shared file,
+// even if the document has two unrelated cycles) — correct, just less
+// finely split than it could be.
 func modularPythonOutput(models []python.ModelOutput, cyclic map[string]bool) Output {
 	var cyclicModels, plainModels []python.ModelOutput
 	for _, m := range models {
@@ -614,17 +788,26 @@ func modularPythonOutput(models []python.ModelOutput, cyclic map[string]bool) Ou
 	files := make(map[string]string, len(models)+1)
 	var barrel strings.Builder
 
+	// An Unsupported declaration still gets its own file (holding the
+	// explanatory comment, like the other targets' output) but defines no
+	// name, so the barrel must not try to import one from it.
 	for _, m := range plainModels {
 		files[fileNameByModel[m.Name]] = renderPythonModuleFile([]python.ModelOutput{m}, fileNameByModel)
-		fmt.Fprintf(&barrel, "from .%s import %s\n", strings.TrimSuffix(fileNameByModel[m.Name], ".py"), m.Name)
+		if !m.Unsupported {
+			fmt.Fprintf(&barrel, "from .%s import %s\n", strings.TrimSuffix(fileNameByModel[m.Name], ".py"), m.Name)
+		}
 	}
 	if len(cyclicModels) > 0 {
 		files["_cyclic.py"] = renderPythonModuleFile(cyclicModels, fileNameByModel)
-		names := make([]string, len(cyclicModels))
-		for i, m := range cyclicModels {
-			names[i] = m.Name
+		var names []string
+		for _, m := range cyclicModels {
+			if !m.Unsupported {
+				names = append(names, m.Name)
+			}
 		}
-		fmt.Fprintf(&barrel, "from ._cyclic import %s\n", strings.Join(names, ", "))
+		if len(names) > 0 {
+			fmt.Fprintf(&barrel, "from ._cyclic import %s\n", strings.Join(names, ", "))
+		}
 	}
 	files["__init__.py"] = barrel.String()
 	return Output{Files: files}
@@ -634,12 +817,13 @@ func modularPythonOutput(models []python.ModelOutput, cyclic map[string]bool) Ou
 // model in group, importing whatever non-group dependency each needs
 // from its own file (a dependency landing in the SAME file, i.e. two
 // cyclic models bundled together, needs no import — fileNameByModel maps
-// both to "_cyclic.py", which == thisFile, so it's skipped below).
+// both to "_cyclic.py", which == thisFile, so it's skipped below). A
+// multi-declaration group is ordered by topoSortModelOutputs, for the
+// same NameError reason as monolithic output.
 func renderPythonModuleFile(group []python.ModelOutput, fileNameByModel map[string]string) string {
 	thisFile := fileNameByModel[group[0].Name]
 	var imports []string
-	var importLines []string
-	seenImportLine := map[string]bool{}
+	var relativeImports []string
 	for _, m := range group {
 		imports = append(imports, m.Imports...)
 		for _, dep := range m.Dependencies {
@@ -647,26 +831,22 @@ func renderPythonModuleFile(group []python.ModelOutput, fileNameByModel map[stri
 			if !ok || depFile == thisFile {
 				continue
 			}
-			line := fmt.Sprintf("from .%s import %s\n", strings.TrimSuffix(depFile, ".py"), dep)
-			if !seenImportLine[line] {
-				seenImportLine[line] = true
-				importLines = append(importLines, line)
-			}
+			relativeImports = append(relativeImports, fmt.Sprintf("from .%s import %s", strings.TrimSuffix(depFile, ".py"), dep))
 		}
 	}
 
 	var sb strings.Builder
 	sb.WriteString("from __future__ import annotations\n")
-	for _, imp := range dedupeSortedStrings(imports) {
+	for _, imp := range mergePythonImports(imports) {
 		sb.WriteString(imp)
 		sb.WriteString("\n")
 	}
-	sort.Strings(importLines)
-	for _, line := range importLines {
-		sb.WriteString(line)
+	for _, imp := range mergePythonImports(relativeImports) {
+		sb.WriteString(imp)
+		sb.WriteString("\n")
 	}
 	sb.WriteString("\n")
-	for i, m := range group {
+	for i, m := range topoSortModelOutputs(group) {
 		if i > 0 {
 			sb.WriteString("\n")
 		}
@@ -675,17 +855,42 @@ func renderPythonModuleFile(group []python.ModelOutput, fileNameByModel map[stri
 	return sb.String()
 }
 
-// dedupeSortedStrings dedupes and sorts a slice of arbitrary strings
-// (import lines) — distinct from python.Generate's own dedupeSorted,
-// which this package cannot import (it's unexported in internal/gen/python).
-func dedupeSortedStrings(in []string) []string {
-	set := make(map[string]bool, len(in))
-	for _, s := range in {
-		set[s] = true
+// mergePythonImports collapses import lines into one line per module:
+// every "from M import a, b" line naming the same M is merged into a
+// single line importing the sorted union of their names, so a file whose
+// declarations need "from pydantic import BaseModel" and "from pydantic
+// import BaseModel, ConfigDict, Field" gets only the latter. Any other
+// line is kept verbatim (deduplicated). The result is sorted.
+func mergePythonImports(lines []string) []string {
+	namesByModule := map[string]map[string]bool{}
+	other := map[string]bool{}
+	for _, line := range lines {
+		rest, ok := strings.CutPrefix(line, "from ")
+		module, names, ok2 := strings.Cut(rest, " import ")
+		if !ok || !ok2 || strings.ContainsAny(names, "()") {
+			other[line] = true
+			continue
+		}
+		if namesByModule[module] == nil {
+			namesByModule[module] = map[string]bool{}
+		}
+		for _, name := range strings.Split(names, ",") {
+			if name = strings.TrimSpace(name); name != "" {
+				namesByModule[module][name] = true
+			}
+		}
 	}
-	out := make([]string, 0, len(set))
-	for s := range set {
-		out = append(out, s)
+	out := make([]string, 0, len(namesByModule)+len(other))
+	for module, set := range namesByModule {
+		names := make([]string, 0, len(set))
+		for name := range set {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		out = append(out, "from "+module+" import "+strings.Join(names, ", "))
+	}
+	for line := range other {
+		out = append(out, line)
 	}
 	sort.Strings(out)
 	return out

@@ -12,16 +12,19 @@ import (
 )
 
 // TestGoldenPythonOutput_Compiles hands every committed *.py.txt golden
-// (the dataclass target) to python3 -m py_compile — a real syntax check
-// that comparing generated Python as Go strings cannot provide. Skips
+// (the dataclass target) to a real python3 interpreter that actually runs
+// the generated module. Running it, not just py_compile, matters: a
+// syntactically valid module can still fail at import time — e.g. a
+// top-level alias assignment naming a class defined further down raises
+// NameError, which py_compile never executes far enough to see. Skips
 // (never fails) when python3 is missing or -short is set.
 func TestGoldenPythonOutput_Compiles(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping python3 compile check of Python goldens in -short mode")
+		t.Skip("skipping python3 run check of Python goldens in -short mode")
 	}
 	python3, err := exec.LookPath("python3")
 	if err != nil {
-		t.Skip("python3 not found on PATH; skipping compile check of Python goldens (install Python 3.10+ to get real compile verification)")
+		t.Skip("python3 not found on PATH; skipping run check of Python goldens (install Python 3.10+ to get real verification)")
 	}
 
 	goldens, err := filepath.Glob(filepath.Join("testdata", "golden", "*.py.txt"))
@@ -38,7 +41,7 @@ func TestGoldenPythonOutput_Compiles(t *testing.T) {
 		}
 	}
 	if len(dataclassGoldens) == 0 {
-		t.Fatal("no *.py.txt golden files found to compile")
+		t.Fatal("no *.py.txt golden files found to run")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
@@ -55,10 +58,11 @@ func TestGoldenPythonOutput_Compiles(t *testing.T) {
 			if err := os.WriteFile(dest, content, 0o644); err != nil {
 				t.Fatalf("write %s: %v", dest, err)
 			}
-			cmd := exec.CommandContext(ctx, python3, "-m", "py_compile", dest)
+			cmd := exec.CommandContext(ctx, python3, "generated.py")
+			cmd.Dir = dir
 			out, err := cmd.CombinedOutput()
 			if err != nil {
-				t.Errorf("generated Python output does not compile (python3 -m py_compile):\n%s", strings.TrimSpace(string(out)))
+				t.Errorf("generated Python output does not run cleanly (python3 generated.py):\n%s", strings.TrimSpace(string(out)))
 			}
 		})
 	}
