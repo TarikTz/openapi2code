@@ -1,0 +1,32 @@
+from __future__ import annotations
+from dataclasses import dataclass
+from enum import Enum
+
+@dataclass(kw_only=True)
+class Category:
+    id: int | None = None
+    name: str
+
+@dataclass(kw_only=True)
+class Error:
+    code: int
+    message: str
+
+@dataclass(kw_only=True)
+class Pet:
+    category: Category | None = None
+    id: int | None = None
+    name: str
+    photo_urls: list[str]
+    status: PetStatus | None = None
+    tags: list[Tag] | None = None
+
+@dataclass(kw_only=True)
+class Tag:
+    id: int | None = None
+    name: str
+
+class PetStatus(str, Enum):
+    AVAILABLE = "available"
+    PENDING = "pending"
+    SOLD = "sold"

@@ -1,0 +1,15 @@
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(kw_only=True)
+class A:
+    b: B | None = None
+
+@dataclass(kw_only=True)
+class B:
+    a: A | None = None
+
+@dataclass(kw_only=True)
+class TreeNode:
+    children: list[TreeNode] | None = None
+    value: str

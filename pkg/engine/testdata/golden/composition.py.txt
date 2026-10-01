@@ -1,0 +1,15 @@
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(kw_only=True)
+class Animal:
+    name: str
+
+@dataclass(kw_only=True)
+class Dog:
+    name: str
+    breed: str
+
+# Pet was not generated for the Python target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).
+
+# StringOrNumber was not generated for the Python target: unsupported schema shape (oneOf/anyOf, an allOf mixing object and non-object members, or an unrecognized primitive type).

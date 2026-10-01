@@ -1,0 +1,31 @@
+from __future__ import annotations
+from enum import Enum
+from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
+
+class Category(BaseModel):
+    id: int | None = None
+    name: str
+
+class Error(BaseModel):
+    code: int
+    message: str
+
+class Pet(BaseModel):
+    category: Category | None = None
+    id: int | None = None
+    name: str
+    photo_urls: list[str] = Field(alias="photoUrls")
+    status: PetStatus | None = None
+    tags: list[Tag] | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+class Tag(BaseModel):
+    id: int | None = None
+    name: str
+
+class PetStatus(str, Enum):
+    AVAILABLE = "available"
+    PENDING = "pending"
+    SOLD = "sold"

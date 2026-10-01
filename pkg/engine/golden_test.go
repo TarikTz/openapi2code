@@ -213,6 +213,71 @@ func TestGoldenFixtures_Dart(t *testing.T) {
 	}
 }
 
+// TestGoldenFixtures_Python golden-tests Python dataclass monolithic
+// output for the same fixtures already used to exercise TS's
+// union/enum/cyclic/allOf handling, comparing against
+// testdata/golden/<fixture>.py.txt.
+func TestGoldenFixtures_Python(t *testing.T) {
+	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types"}
+	for _, name := range fixtures {
+		name := name
+		t.Run(name, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join("testdata", name+".yaml"))
+			if err != nil {
+				t.Fatalf("read fixture: %v", err)
+			}
+			doc, err := engine.Parse(data)
+			if err != nil {
+				t.Fatalf("Parse: %v", err)
+			}
+			out, err := engine.GeneratePython(doc, engine.PythonOptions{Modular: false})
+			if err != nil {
+				t.Fatalf("GeneratePython: %v", err)
+			}
+			got, ok := out.Files["generated.py"]
+			if !ok {
+				t.Fatalf("monolithic output has no generated.py; files: %v", fileNames(out.Files))
+			}
+			if len(out.Files) != 1 {
+				t.Fatalf("expected exactly 1 file for monolithic output, got %v", fileNames(out.Files))
+			}
+			checkGolden(t, filepath.Join("testdata", "golden", name+".py.txt"), got)
+		})
+	}
+}
+
+// TestGoldenFixtures_Pydantic golden-tests Pydantic BaseModel monolithic
+// output for the same fixtures, comparing against
+// testdata/golden/<fixture>.pydantic.py.txt.
+func TestGoldenFixtures_Pydantic(t *testing.T) {
+	fixtures := []string{"petstore", "circular", "composition", "nullable_enum", "enum_types"}
+	for _, name := range fixtures {
+		name := name
+		t.Run(name, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join("testdata", name+".yaml"))
+			if err != nil {
+				t.Fatalf("read fixture: %v", err)
+			}
+			doc, err := engine.Parse(data)
+			if err != nil {
+				t.Fatalf("Parse: %v", err)
+			}
+			out, err := engine.GeneratePydantic(doc, engine.PydanticOptions{Modular: false})
+			if err != nil {
+				t.Fatalf("GeneratePydantic: %v", err)
+			}
+			got, ok := out.Files["generated.py"]
+			if !ok {
+				t.Fatalf("monolithic output has no generated.py; files: %v", fileNames(out.Files))
+			}
+			if len(out.Files) != 1 {
+				t.Fatalf("expected exactly 1 file for monolithic output, got %v", fileNames(out.Files))
+			}
+			checkGolden(t, filepath.Join("testdata", "golden", name+".pydantic.py.txt"), got)
+		})
+	}
+}
+
 func generateFixture(t *testing.T, name string, opts engine.TSOptions) engine.Output {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join("testdata", name+".yaml"))
