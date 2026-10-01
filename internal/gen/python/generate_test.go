@@ -2,6 +2,7 @@
 package python
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/tarikomercehajic/openapi2code/internal/gen/mobile"
@@ -106,4 +107,121 @@ func TestResolveType_UnionSkipped(t *testing.T) {
 	if !res.Skip {
 		t.Error("expected KindUnion to be skipped")
 	}
+}
+
+func TestGenerate_DataclassRequiredFieldAfterOptionalUsesKwOnly(t *testing.T) {
+	// a declared (iteration-order) first but optional; b declared second
+	// but required — a plain @dataclass would be a SyntaxError here
+	// ("non-default argument 'b' follows default argument"); kw_only=True
+	// must be present on the class to make this valid regardless of order.
+	model := &ir.Model{
+		Name: "Widget",
+		Type: &ir.Node{Kind: ir.KindObject, Object: &ir.ObjectNode{Fields: []*ir.Field{
+			{Name: "a", Type: &ir.Node{Kind: ir.KindPrimitive, Primitive: ir.PrimitiveString}, Optional: true},
+			{Name: "b", Type: &ir.Node{Kind: ir.KindPrimitive, Primitive: ir.PrimitiveString}},
+		}}},
+	}
+	outputs, err := Generate(&ir.Document{Models: []*ir.Model{model}}, Dataclass)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	if len(outputs) != 1 {
+		t.Fatalf("got %d outputs, want 1", len(outputs))
+	}
+	decl := outputs[0].Declaration
+	if !strings.Contains(decl, "@dataclass(kw_only=True)") {
+		t.Errorf("declaration missing kw_only=True:\n%s", decl)
+	}
+	if !strings.Contains(decl, "a: str | None = None") || !strings.Contains(decl, "b: str") {
+		t.Errorf("declaration missing expected fields:\n%s", decl)
+	}
+}
+
+func TestGenerate_PydanticAliasForSanitizedFieldName(t *testing.T) {
+	model := &ir.Model{
+		Name: "Widget",
+		Type: &ir.Node{Kind: ir.KindObject, Object: &ir.ObjectNode{Fields: []*ir.Field{
+			{Name: "class", Type: &ir.Node{Kind: ir.KindPrimitive, Primitive: ir.PrimitiveString}},
+		}}},
+	}
+	outputs, err := Generate(&ir.Document{Models: []*ir.Model{model}}, Pydantic)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	decl := outputs[0].Declaration
+	if !strings.Contains(decl, `class_: str = Field(alias="class")`) {
+		t.Errorf("declaration missing aliased field:\n%s", decl)
+	}
+	if !strings.Contains(decl, "model_config = ConfigDict(populate_by_name=True)") {
+		t.Errorf("declaration missing model_config:\n%s", decl)
+	}
+	if !containsImport(outputs[0].Imports, "from pydantic import BaseModel, ConfigDict, Field") {
+		t.Errorf("imports missing pydantic alias imports: %v", outputs[0].Imports)
+	}
+}
+
+func TestGenerate_FieldNameCollisionUniquifies(t *testing.T) {
+	// "photo_urls" and "photoUrls" both sanitize to "photo_urls".
+	model := &ir.Model{
+		Name: "Pet",
+		Type: &ir.Node{Kind: ir.KindObject, Object: &ir.ObjectNode{Fields: []*ir.Field{
+			{Name: "photo_urls", Type: &ir.Node{Kind: ir.KindPrimitive, Primitive: ir.PrimitiveString}},
+			{Name: "photoUrls", Type: &ir.Node{Kind: ir.KindPrimitive, Primitive: ir.PrimitiveString}},
+		}}},
+	}
+	outputs, err := Generate(&ir.Document{Models: []*ir.Model{model}}, Dataclass)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	decl := outputs[0].Declaration
+	if !strings.Contains(decl, "photo_urls: str") || !strings.Contains(decl, "photo_urls_2: str") {
+		t.Errorf("declaration missing both uniquified fields:\n%s", decl)
+	}
+}
+
+func TestGenerate_InlineObjectFieldBecomesDependency(t *testing.T) {
+	model := &ir.Model{
+		Name: "Pet",
+		Type: &ir.Node{Kind: ir.KindObject, Object: &ir.ObjectNode{Fields: []*ir.Field{
+			{Name: "owner", Type: &ir.Node{Kind: ir.KindObject, Object: &ir.ObjectNode{Fields: []*ir.Field{
+				{Name: "name", Type: &ir.Node{Kind: ir.KindPrimitive, Primitive: ir.PrimitiveString}},
+			}}}},
+		}}},
+	}
+	outputs, err := Generate(&ir.Document{Models: []*ir.Model{model}}, Dataclass)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	if len(outputs) != 2 {
+		t.Fatalf("got %d outputs, want 2 (Pet + synthesized PetOwner)", len(outputs))
+	}
+	pet := outputs[0]
+	if len(pet.Dependencies) != 1 || pet.Dependencies[0] != "PetOwner" {
+		t.Errorf("Pet.Dependencies = %v, want [PetOwner]", pet.Dependencies)
+	}
+}
+
+func TestGenerate_UnionFieldSkippedWithComment(t *testing.T) {
+	model := &ir.Model{
+		Name: "Pet",
+		Type: &ir.Node{Kind: ir.KindObject, Object: &ir.ObjectNode{Fields: []*ir.Field{
+			{Name: "weird", Type: &ir.Node{Kind: ir.KindUnion, Union: &ir.UnionNode{}}},
+		}}},
+	}
+	outputs, err := Generate(&ir.Document{Models: []*ir.Model{model}}, Dataclass)
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	if !strings.Contains(outputs[0].Declaration, "# weird: skipped") {
+		t.Errorf("expected a skipped-field comment for weird:\n%s", outputs[0].Declaration)
+	}
+}
+
+func containsImport(imports []string, want string) bool {
+	for _, imp := range imports {
+		if imp == want {
+			return true
+		}
+	}
+	return false
 }
