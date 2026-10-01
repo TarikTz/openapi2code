@@ -2,10 +2,12 @@ package engine
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/tarikomercehajic/openapi2code/internal/gen/dart"
 	"github.com/tarikomercehajic/openapi2code/internal/gen/kotlin"
+	"github.com/tarikomercehajic/openapi2code/internal/gen/python"
 	"github.com/tarikomercehajic/openapi2code/internal/gen/swift"
 	"github.com/tarikomercehajic/openapi2code/internal/gen/ts"
 	"github.com/tarikomercehajic/openapi2code/internal/gen/zod"
@@ -473,4 +475,218 @@ func uniqueDartFileName(fileName string, used map[string]bool) string {
 			return candidate
 		}
 	}
+}
+
+// PythonOptions controls GeneratePython's output layout.
+type PythonOptions struct {
+	Modular bool
+}
+
+// GeneratePython renders doc as Python stdlib dataclasses, laid out per
+// opts.
+//
+//   - Monolithic (opts.Modular false): exactly one file, keyed
+//     "generated.py", holding every model's declaration in name-sorted
+//     order, preceded by "from __future__ import annotations" and the
+//     union of every declaration's own Imports.
+//   - Modular (opts.Modular true): one file per non-cyclic model, keyed
+//     "<Name>.py"; every model flagged ir.Model.Cyclic in doc is instead
+//     grouped into one shared "_cyclic.py" file (see modularPythonOutput's
+//     doc comment for why); plus an "__init__.py" barrel re-exporting
+//     every model from whichever file it landed in.
+func GeneratePython(doc *ir.Document, opts PythonOptions) (Output, error) {
+	return generatePythonFamily(doc, python.Dataclass, opts.Modular)
+}
+
+// PydanticOptions controls GeneratePydantic's output layout.
+type PydanticOptions struct {
+	Modular bool
+}
+
+// GeneratePydantic renders doc as Pydantic BaseModel classes, laid out
+// per opts. Layout contract is identical to GeneratePython's (see its
+// doc comment) — the two differ only in the Python source python.Generate
+// itself produces for each declaration (class header, field defaults,
+// alias handling), not in how pkg/engine lays declarations out across
+// files.
+func GeneratePydantic(doc *ir.Document, opts PydanticOptions) (Output, error) {
+	return generatePythonFamily(doc, python.Pydantic, opts.Modular)
+}
+
+func generatePythonFamily(doc *ir.Document, style python.Style, modular bool) (Output, error) {
+	models, err := python.Generate(doc, style)
+	if err != nil {
+		return Output{}, err
+	}
+	// Build resolvedName -> cyclic directly from doc.Models: a
+	// synthesized (inline enum/object) declaration has no doc.Models
+	// entry at all and is never part of a $ref cycle (see
+	// nodeIsUnsupported's doc comment in internal/gen/python/generate.go
+	// for why), so it's correctly left out of resolvedCyclic here.
+	resolvedCyclic := make(map[string]bool, len(doc.Models))
+	for _, m := range doc.Models {
+		if m.Cyclic {
+			resolvedCyclic[pythonResolvedName(doc, models, m.Name)] = true
+		}
+	}
+	if modular {
+		return modularPythonOutput(models, resolvedCyclic), nil
+	}
+	return monolithicPythonOutput(models), nil
+}
+
+// pythonResolvedName returns the resolved Python identifier for the
+// top-level model whose IR name is irName. python.Generate seeds its
+// render queue from doc.Models, in order, before appending any
+// synthesized (inline enum/object) entry, and every top-level model
+// always produces exactly one declaration (renderDeclaration never
+// returns an empty string for a doc.Models entry — only a *field's*
+// unsupported type is skipped, never a whole top-level model) — so
+// models[i] corresponds to doc.Models[i] for every i < len(doc.Models).
+func pythonResolvedName(doc *ir.Document, models []python.ModelOutput, irName string) string {
+	for i, m := range doc.Models {
+		if m.Name == irName {
+			return models[i].Name
+		}
+	}
+	return irName
+}
+
+func monolithicPythonOutput(models []python.ModelOutput) Output {
+	var imports []string
+	var sb strings.Builder
+	for i, m := range models {
+		imports = append(imports, m.Imports...)
+		if i > 0 {
+			sb.WriteString("\n")
+		}
+		sb.WriteString(m.Declaration)
+	}
+	var header strings.Builder
+	header.WriteString("from __future__ import annotations\n")
+	for _, imp := range dedupeSortedStrings(imports) {
+		header.WriteString(imp)
+		header.WriteString("\n")
+	}
+	header.WriteString("\n")
+	header.WriteString(sb.String())
+	return Output{Files: map[string]string{"generated.py": header.String()}}
+}
+
+// modularPythonOutput writes one file per non-cyclic model (keyed
+// "<Name>.py", case-insensitively uniquified like modularSwiftOutput),
+// groups every cyclic-flagged model into one shared "_cyclic.py" file,
+// and writes an "__init__.py" barrel re-exporting every model regardless
+// of which file it landed in.
+//
+// The cyclic grouping exists because Python raises ImportError on a
+// genuine circular top-level import ("from .a import A" at the top of
+// b.py, while "from .b import B" sits at the top of a.py, with neither
+// module having finished executing far enough to expose the other's
+// name yet) — a real restriction Dart's language does not share, so
+// modularDartOutput's one-file-per-model approach cannot be copied
+// as-is. Bundling every cycle member into one file sidesteps the problem
+// entirely: references between declarations in the SAME file need no
+// import at all. This is deliberately coarser than computing each
+// cycle's actual connected component (every cyclic model in the whole
+// document lands in one shared file, even if the document has two
+// unrelated cycles) — correct, just less finely split than it could be;
+// splitting further is not required by the design spec.
+func modularPythonOutput(models []python.ModelOutput, cyclic map[string]bool) Output {
+	var cyclicModels, plainModels []python.ModelOutput
+	for _, m := range models {
+		if cyclic[m.Name] {
+			cyclicModels = append(cyclicModels, m)
+		} else {
+			plainModels = append(plainModels, m)
+		}
+	}
+
+	fileNameByModel := make(map[string]string, len(models))
+	usedLower := map[string]bool{"__init__": true, "_cyclic": true}
+	for _, m := range plainModels {
+		fileNameByModel[m.Name] = uniqueFileName(m.Name, usedLower) + ".py"
+	}
+	for _, m := range cyclicModels {
+		fileNameByModel[m.Name] = "_cyclic.py"
+	}
+
+	files := make(map[string]string, len(models)+1)
+	var barrel strings.Builder
+
+	for _, m := range plainModels {
+		files[fileNameByModel[m.Name]] = renderPythonModuleFile([]python.ModelOutput{m}, fileNameByModel)
+		fmt.Fprintf(&barrel, "from .%s import %s\n", strings.TrimSuffix(fileNameByModel[m.Name], ".py"), m.Name)
+	}
+	if len(cyclicModels) > 0 {
+		files["_cyclic.py"] = renderPythonModuleFile(cyclicModels, fileNameByModel)
+		names := make([]string, len(cyclicModels))
+		for i, m := range cyclicModels {
+			names[i] = m.Name
+		}
+		fmt.Fprintf(&barrel, "from ._cyclic import %s\n", strings.Join(names, ", "))
+	}
+	files["__init__.py"] = barrel.String()
+	return Output{Files: files}
+}
+
+// renderPythonModuleFile renders one modular-output file holding every
+// model in group, importing whatever non-group dependency each needs
+// from its own file (a dependency landing in the SAME file, i.e. two
+// cyclic models bundled together, needs no import — fileNameByModel maps
+// both to "_cyclic.py", which == thisFile, so it's skipped below).
+func renderPythonModuleFile(group []python.ModelOutput, fileNameByModel map[string]string) string {
+	thisFile := fileNameByModel[group[0].Name]
+	var imports []string
+	var importLines []string
+	seenImportLine := map[string]bool{}
+	for _, m := range group {
+		imports = append(imports, m.Imports...)
+		for _, dep := range m.Dependencies {
+			depFile, ok := fileNameByModel[dep]
+			if !ok || depFile == thisFile {
+				continue
+			}
+			line := fmt.Sprintf("from .%s import %s\n", strings.TrimSuffix(depFile, ".py"), dep)
+			if !seenImportLine[line] {
+				seenImportLine[line] = true
+				importLines = append(importLines, line)
+			}
+		}
+	}
+
+	var sb strings.Builder
+	sb.WriteString("from __future__ import annotations\n")
+	for _, imp := range dedupeSortedStrings(imports) {
+		sb.WriteString(imp)
+		sb.WriteString("\n")
+	}
+	sort.Strings(importLines)
+	for _, line := range importLines {
+		sb.WriteString(line)
+	}
+	sb.WriteString("\n")
+	for i, m := range group {
+		if i > 0 {
+			sb.WriteString("\n")
+		}
+		sb.WriteString(m.Declaration)
+	}
+	return sb.String()
+}
+
+// dedupeSortedStrings dedupes and sorts a slice of arbitrary strings
+// (import lines) — distinct from python.Generate's own dedupeSorted,
+// which this package cannot import (it's unexported in internal/gen/python).
+func dedupeSortedStrings(in []string) []string {
+	set := make(map[string]bool, len(in))
+	for _, s := range in {
+		set[s] = true
+	}
+	out := make([]string, 0, len(set))
+	for s := range set {
+		out = append(out, s)
+	}
+	sort.Strings(out)
+	return out
 }
