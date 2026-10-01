@@ -3,7 +3,7 @@
 // by an actual `openapi2code pull` run against the spec shown just above
 // it on the page (see the commit that added this file for the exact
 // commands), not hand-written or hand-edited afterward. This page has
-// no WASM module of its own — loading one just to render five fixed
+// no WASM module of its own — loading one just to render seven fixed
 // snippets would be needless weight for a static showcase page, so the
 // output is pasted in verbatim and highlighted with the same
 // highlightCode() the playground itself uses, for a consistent look.
@@ -186,6 +186,78 @@ enum PetStatus {
 }
 `,
   },
+  python: {
+    label: "Python",
+    lang: "python",
+    code: `from __future__ import annotations
+from dataclasses import dataclass
+from enum import Enum
+
+@dataclass(kw_only=True)
+class Category:
+    id: int | None = None
+    name: str
+
+@dataclass(kw_only=True)
+class Error:
+    code: int
+    message: str
+
+@dataclass(kw_only=True)
+class Pet:
+    category: Category | None = None
+    id: int | None = None
+    name: str
+    photo_urls: list[str]
+    status: PetStatus | None = None
+    tags: list[Tag] | None = None
+
+@dataclass(kw_only=True)
+class Tag:
+    id: int | None = None
+    name: str
+
+class PetStatus(str, Enum):
+    AVAILABLE = "available"
+    PENDING = "pending"
+    SOLD = "sold"
+`,
+  },
+  pydantic: {
+    label: "Pydantic",
+    lang: "python",
+    code: `from __future__ import annotations
+from enum import Enum
+from pydantic import BaseModel, ConfigDict, Field
+
+class Category(BaseModel):
+    id: int | None = None
+    name: str
+
+class Error(BaseModel):
+    code: int
+    message: str
+
+class Pet(BaseModel):
+    category: Category | None = None
+    id: int | None = None
+    name: str
+    photo_urls: list[str] = Field(alias="photoUrls")
+    status: PetStatus | None = None
+    tags: list[Tag] | None = None
+
+    model_config = ConfigDict(populate_by_name=True)
+
+class Tag(BaseModel):
+    id: int | None = None
+    name: str
+
+class PetStatus(str, Enum):
+    AVAILABLE = "available"
+    PENDING = "pending"
+    SOLD = "sold"
+`,
+  },
 };
 
 function renderInto(elementId, code, lang) {
@@ -195,7 +267,7 @@ function renderInto(elementId, code, lang) {
   }
 }
 
-// --- Pet: tabbed across all 5 targets ---
+// --- Pet: tabbed across all 7 targets ---
 
 const petOutput = document.getElementById("pet-output");
 const petTabs = document.getElementById("pet-tabs");

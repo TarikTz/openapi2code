@@ -1,6 +1,6 @@
 # OpenAPI2Code
 
-Turn an OpenAPI or Swagger spec into typed TypeScript, Zod, Swift, Kotlin, and Dart code — from one zero-dependency Go engine that compiles unchanged to a CLI binary and to WebAssembly.
+Turn an OpenAPI or Swagger spec into typed TypeScript, Zod, Swift, Kotlin, Dart, Python, and Pydantic code — from one zero-dependency Go engine that compiles unchanged to a CLI binary and to WebAssembly.
 
 [![CI](https://github.com/TarikTz/openapi2code/actions/workflows/ci.yml/badge.svg)](https://github.com/TarikTz/openapi2code/actions/workflows/ci.yml)
 [![Go version](https://img.shields.io/github/go-mod/go-version/TarikTz/openapi2code)](go.mod)
@@ -12,14 +12,14 @@ Turn an OpenAPI or Swagger spec into typed TypeScript, Zod, Swift, Kotlin, and D
 
 - Parses OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin
 - Full `$ref`, `allOf`/`oneOf`/`anyOf`, type-preserving enum (string, integer, number, and boolean — not just strings), array, `additionalProperties`, nullable/optional, and circular-reference support
-- Generates TypeScript, Zod v3, Swift, Kotlin, and Dart — one target or several in a single run, modular or monolithic
+- Generates TypeScript, Zod v3, Swift, Kotlin, Dart, Python dataclasses, and Pydantic models — one target or several in a single run, modular or monolithic
 - Runs as a CLI, a Go library, or entirely client-side in the browser via WebAssembly
 - A single static binary with one third-party dependency (`gopkg.in/yaml.v3`); everything else is the standard library
-- Generated output is checked against the real compiler (`tsc`, `swiftc`, `kotlinc`, `dart`) as part of the test suite, not just diffed as text
+- Generated output is checked against the real compiler or interpreter (`tsc`, `swiftc`, `kotlinc`, `dart`, `python3` — including a real Pydantic import check) as part of the test suite, not just diffed as text
 
 ## Status
 
-Every planned target is implemented and tested — TypeScript, Zod v3, Swift, Kotlin, and Dart, generated from one shared intermediate representation so they can't drift out of sync with each other. Use the `openapi2code` CLI binary (see [CLI usage](#cli-usage)), import `pkg/engine` directly into your own Go code (see [Library usage](#library-usage)), or run the engine client-side in a browser (see [WASM build and playground](#wasm-build-and-playground)).
+Every planned target is implemented and tested — TypeScript, Zod v3, Swift, Kotlin, Dart, Python dataclasses, and Pydantic models, generated from one shared intermediate representation so they can't drift out of sync with each other. Use the `openapi2code` CLI binary (see [CLI usage](#cli-usage)), import `pkg/engine` directly into your own Go code (see [Library usage](#library-usage)), or run the engine client-side in a browser (see [WASM build and playground](#wasm-build-and-playground)).
 
 What works today:
 - Parses OpenAPI 3.0, OpenAPI 3.1, and Swagger 2.0 documents, in JSON or YAML, from a local file, an `http(s)://` URL, or stdin. OpenAPI 3.1 dropped the `nullable` keyword in favor of JSON Schema's `type: [T, "null"]`; this is normalized during parsing into the exact same shape `nullable: true` produces, so every generator sees one uniform representation regardless of which OpenAPI version a field's nullability came from.
@@ -28,6 +28,7 @@ What works today:
 - Generates TypeScript interfaces, either as one file per model with a barrel `index.ts` (modular) or as a single file (monolithic)
 - Generates Zod v3 validation schemas in the same two layouts, with `z.lazy()`/`z.ZodType<T>` for circular schemas. Generated files `import { z } from "zod"`, so `zod` needs to be a dependency of the *consuming* project — this repo itself stays dependency-free, since it only ever emits schema source text.
 - Generates native mobile models: Swift `Codable` structs (classes for cyclic models), Kotlin data classes, and Dart classes — each with hand-written JSON (de)serialization requiring no consumer dependency, idiomatic camelCase field names with an explicit wire-name mapping back to the original JSON key, and a synthesized named type for any inline (non-`$ref`) enum or object a field resolves to. `oneOf`/`anyOf`, allOf's non-object-member fallback, and a `$ref` to an array/map alias whose items are an inline (non-`$ref`) object or enum are not yet supported for these three targets — an affected model or field is skipped with a comment rather than generated incorrectly.
+- Generates Python models in two flavors sharing one `internal/gen/python` package: stdlib `@dataclass(kw_only=True)` classes (zero-dependency) and Pydantic `BaseModel` classes (runtime validation), both targeting Python 3.10+ syntax (`X | None`, `list[X]`, `dict[str, X]`). Fields are idiomatic `snake_case`; where that differs from the wire name, Pydantic round-trips it via `Field(alias=...)` (dataclasses don't have an alias mechanism, so they keep the sanitized name only). Models that participate in a `$ref` cycle are grouped into one shared `_cyclic.py` file in modular output, since Python (unlike Dart) raises a real `ImportError` on a genuine circular import between separate files. `oneOf`/`anyOf` and allOf's non-object-member fallback aren't yet supported for these two targets either — same skip-with-a-comment behavior as the mobile targets.
 - Compiles unchanged to WebAssembly, so the same engine parses and generates entirely client-side in a browser, with no server round-trip — see the playground in `web/`
 - Guards against pathologically deep intra-schema nesting (500+ levels) with a clean error, instead of overflowing the call stack — most likely to matter in the browser, where the JS engine's stack is far smaller than a native Go binary's
 
@@ -101,6 +102,15 @@ Generate Zod v3 validation schemas instead, in either layout:
 
 Each generated file starts with `import { z } from "zod";`, so add `zod` to the consuming project's `package.json` (`npm install zod`). Every model is emitted as a `<Model>Schema` constant plus its inferred type — `export const PetSchema = z.object({ ... }); export type Pet = z.infer<typeof PetSchema>;` — so you can both validate and type-annotate from one import.
 
+Generate Python stdlib dataclasses, or Pydantic models instead:
+
+```bash
+./openapi2code pull ./petstore.yaml --target python --output ./models
+./openapi2code pull ./petstore.yaml --target pydantic --out-file ./models.py
+```
+
+`--target python` needs nothing beyond the standard library; `--target pydantic` needs the consuming project to `pip install pydantic`. A field whose sanitized Python name differs from the wire name (a `camelCase` property, or one colliding with a Python keyword) round-trips through `Field(alias="...")` in the Pydantic output.
+
 `<source>` also accepts an `http(s)://` URL (fetched with a 30s timeout) or `-` to read the spec from stdin:
 
 ```bash
@@ -115,11 +125,11 @@ Generate more than one target in a single run with a comma-separated `--target`:
 # -> ./src/types/ts/*.ts, ./src/types/zod/*.ts
 ```
 
-`--target` accepts `ts` (default), `zod`, `swift`, `kotlin`, or `dart` — comma-separate more than one (e.g. `--target ts,zod`) to generate several in one run. With a single target, `--output` and `--out-file` both work as shown above; with more than one, `--out-file` isn't allowed (there's no single file to merge multiple languages into) and `--output <dir>` writes one subdirectory per target (`<dir>/ts/`, `<dir>/zod/`, ...), since e.g. `ts` and `zod` both name their monolithic/barrel file `index.ts` and would otherwise collide in a flat directory. Existing files at the exact generated paths are overwritten on rerun — nothing else in the destination is touched, so it's safe to run repeatedly in a dev loop or CI step. Run `openapi2code pull --help` for the full flag list.
+`--target` accepts `ts` (default), `zod`, `swift`, `kotlin`, `dart`, `python`, or `pydantic` — comma-separate more than one (e.g. `--target ts,zod,python`) to generate several in one run. With a single target, `--output` and `--out-file` both work as shown above; with more than one, `--out-file` isn't allowed (there's no single file to merge multiple languages into) and `--output <dir>` writes one subdirectory per target (`<dir>/ts/`, `<dir>/zod/`, ...), since e.g. `ts` and `zod` both name their monolithic/barrel file `index.ts` and would otherwise collide in a flat directory. Existing files at the exact generated paths are overwritten on rerun — nothing else in the destination is touched, so it's safe to run repeatedly in a dev loop or CI step. Run `openapi2code pull --help` for the full flag list.
 
 ## Library usage
 
-You can also use the engine directly as a Go library — this is what the CLI itself calls into. The whole public API is six functions in `pkg/engine` — `Parse`, `GenerateTS`, `GenerateZod`, `GenerateSwift`, `GenerateKotlin`, and `GenerateDart` (the generators take `engine.*Options` and return the same file map, keyed identically):
+You can also use the engine directly as a Go library — this is what the CLI itself calls into. The whole public API is eight functions in `pkg/engine` — `Parse`, `GenerateTS`, `GenerateZod`, `GenerateSwift`, `GenerateKotlin`, `GenerateDart`, `GeneratePython`, and `GeneratePydantic` (the generators take `engine.*Options` and return the same file map, keyed identically):
 
 ```go
 package main
@@ -203,7 +213,7 @@ The JS-facing contract is one function registered on `window`:
 window.openapi2codeGenerate(specText, target, modular) // -> a JSON string
 ```
 
-`target` is `"ts"`, `"zod"`, `"swift"`, `"kotlin"`, or `"dart"`, `modular` is a boolean, and the result is `{"files": {"<name>": "<content>", ...}}` on success or `{"error": "<message>"}` on failure — including for wrong argument types, so a bad call returns an error rather than tearing down the module. Getting the spec text into that string happens entirely in JavaScript, outside the WASM module — the playground (`web/`) supports pasting, a built-in example gallery, dropping a file onto the editor, and fetching a spec from a URL client-side (subject to the target server allowing cross-origin requests; the page shows a clear error when it doesn't, since no page-side setting can work around that browser restriction) — the module itself has no I/O either way, so any of these input paths is free to change without touching it.
+`target` is `"ts"`, `"zod"`, `"swift"`, `"kotlin"`, `"dart"`, `"python"`, or `"pydantic"`, `modular` is a boolean, and the result is `{"files": {"<name>": "<content>", ...}}` on success or `{"error": "<message>"}` on failure — including for wrong argument types, so a bad call returns an error rather than tearing down the module. Getting the spec text into that string happens entirely in JavaScript, outside the WASM module — the playground (`web/`) supports pasting, a built-in example gallery, dropping a file onto the editor, and fetching a spec from a URL client-side (subject to the target server allowing cross-origin requests; the page shows a clear error when it doesn't, since no page-side setting can work around that browser restriction) — the module itself has no I/O either way, so any of these input paths is free to change without touching it.
 
 ## Project layout
 
@@ -216,6 +226,7 @@ internal/gen/mobile/  Naming helpers shared by the Swift/Kotlin/Dart generators
 internal/gen/swift/   Swift code generation from the IR
 internal/gen/kotlin/  Kotlin code generation from the IR
 internal/gen/dart/    Dart code generation from the IR
+internal/gen/python/  Python dataclass + Pydantic code generation from the IR (one Style switch, two targets)
 pkg/engine/       Public API — see Library usage above — the only package meant to be imported
 internal/cli/     CLI logic: flag parsing, source resolution (file/URL/stdin), output writing
 cmd/openapi2code/ The openapi2code binary's entrypoint — a thin wrapper around internal/cli

@@ -49,7 +49,7 @@
       <h1 class="font-mono text-3xl sm:text-4xl font-medium tracking-tight">Use cases</h1>
       <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
         OpenAPI2Code turns one OpenAPI or Swagger spec into typed models for
-        five ecosystems at once. Here's where that's actually useful.
+        seven ecosystems at once. Here's where that's actually useful.
       </p>
     </div>
 
@@ -91,12 +91,27 @@
         </p>
       </div>
 
+      <div class="border-l-2 pl-5 flex flex-col gap-2" style="border-left-color: #3FA66B">
+        <h2 class="font-mono text-xl font-medium tracking-tight">Typed Python services and data pipelines</h2>
+        <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
+          Generate stdlib
+          <code class="font-mono text-sm">dataclass</code>es for a
+          zero-dependency internal client, Pydantic
+          <code class="font-mono text-sm">BaseModel</code>s for a FastAPI
+          service that needs real request validation, or both in one run
+          (<code class="font-mono text-sm">--target python,pydantic</code>).
+          Both share the same field names and structure, so a dataclass
+          consumer and a Pydantic service built from the same spec never
+          quietly disagree about a type.
+        </p>
+      </div>
+
       <div class="border-l-2 pl-5 flex flex-col gap-2" style="border-left-color: #7C6FE0">
         <h2 class="font-mono text-xl font-medium tracking-tight">Quick spec inspection, no install</h2>
         <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
           Paste or drop a spec into the
           <a href="index.html#playground" class="text-brace dark:text-brace-light hover:opacity-80">playground</a>
-          to see exactly what it generates, in any of the five targets,
+          to see exactly what it generates, in any of the seven targets,
           before committing to anything. The whole engine runs
           client-side, compiled to WebAssembly, so nothing you paste is
           ever sent anywhere. Most OpenAPI code generators need a JVM,

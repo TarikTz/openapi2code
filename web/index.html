@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart</title>
-  <meta name="description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
+  <title>OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin, Dart & Python</title>
+  <meta name="description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, Dart, Python, and Pydantic code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
   <link rel="canonical" href="https://openapi2code.com/">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://openapi2code.com/">
   <meta property="og:site_name" content="OpenAPI2Code">
-  <meta property="og:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart">
-  <meta property="og:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
+  <meta property="og:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin, Dart & Python">
+  <meta property="og:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, Dart, Python, and Pydantic code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin & Dart">
-  <meta name="twitter:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
+  <meta name="twitter:title" content="OpenAPI2Code — OpenAPI to TypeScript, Swift, Kotlin, Dart & Python">
+  <meta name="twitter:description" content="Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, Dart, Python, and Pydantic code. It's free, it runs in your browser, and nothing you paste is ever sent to a server.">
 
   <script type="application/ld+json">
   {
@@ -25,7 +25,7 @@
     "url": "https://openapi2code.com/",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any (runs in the browser)",
-    "description": "Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, and Dart code. It all runs client-side, so there's no server round-trip.",
+    "description": "Convert OpenAPI and Swagger specs into typed TypeScript, Zod, Swift, Kotlin, Dart, Python, and Pydantic code. It all runs client-side, so there's no server round-trip.",
     "featureList": [
       "OpenAPI 3.0 and 3.1 support",
       "Swagger 2.0 support",
@@ -34,6 +34,8 @@
       "Swift Codable struct generation",
       "Kotlin data class generation",
       "Dart class generation",
+      "Python dataclass generation",
+      "Pydantic BaseModel generation",
       "Client-side WASM playground with no server round-trip",
       "Zero-dependency single-binary CLI"
     ],
@@ -74,7 +76,7 @@
         "name": "What languages can OpenAPI2Code generate?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "TypeScript interfaces, Zod runtime validation schemas, Swift Codable structs, Kotlin data classes, and Dart classes. All from the same spec, and you can generate more than one at a time."
+          "text": "TypeScript interfaces, Zod runtime validation schemas, Swift Codable structs, Kotlin data classes, Dart classes, Python dataclasses, and Pydantic BaseModel classes. All from the same spec, and you can generate more than one at a time."
         }
       },
       {
@@ -98,7 +100,7 @@
         "name": "How do you know the generated code actually works?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "The test suite runs real generated output through the actual compiler for each target (tsc, swiftc, kotlinc, dart) instead of just comparing it as text. Enums also keep their real type now, so a boolean or integer enum won't get flattened into a string."
+          "text": "The test suite runs real generated output through the actual compiler or interpreter for each target (tsc, swiftc, kotlinc, dart, and python3 — including a real Pydantic import check) instead of just comparing it as text. Enums also keep their real type now, so a boolean or integer enum won't get flattened into a string."
         }
       }
     ]
@@ -164,7 +166,7 @@
   </header>
 
   <!-- Hero: the product's whole idea in one glance — a spec's braces
-       becoming five real, language-native declarations. -->
+       becoming seven real, language-native declarations. -->
   <section class="max-w-6xl mx-auto px-6 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
     <div class="flex flex-col gap-6">
       <h1 class="font-mono font-medium tracking-tight leading-tight text-4xl sm:text-5xl">
@@ -172,8 +174,8 @@
       </h1>
       <p class="text-base sm:text-lg text-ink/70 dark:text-paper/70 max-w-md leading-relaxed">
         Paste an OpenAPI or Swagger spec and get typed models back in TypeScript, Zod,
-        Swift, Kotlin, or Dart. It happens instantly, right in your browser, with nothing
-        to install, and nothing you paste ever leaves your machine.
+        Swift, Kotlin, Dart, Python, or Pydantic. It happens instantly, right in your browser,
+        with nothing to install, and nothing you paste ever leaves your machine.
       </p>
       <div>
         <a href="#playground"
@@ -187,7 +189,7 @@
     <!-- Always a vertical stack (card, arrow, chip list) rather than
          switching to a row: the hero's own grid column caps out at ~528px
          even on the widest screens (the section is max-w-6xl), which is
-         never quite enough room for the card + arrow + five chips side by
+         never quite enough room for the card + arrow + seven chips side by
          side — a row layout would need a viewport-width breakpoint that
          doesn't actually correspond to when this column itself is wide
          enough, since the outer grid halves it at "md". Stacking removes
@@ -206,7 +208,7 @@
 
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-brace dark:text-brace-light shrink-0" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
 
-      <!-- Five languages, one spec. Each fragment is real generator output. -->
+      <!-- Seven languages, one spec. Each fragment is real generator output. -->
       <div class="grid grid-cols-1 gap-2 min-w-0">
         <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #3E7BD9">
           <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">TypeScript</span>
@@ -227,6 +229,14 @@
         <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #17A7E0">
           <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">Dart</span>
           <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">class Pet {</code>
+        </div>
+        <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #3FA66B">
+          <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">Python</span>
+          <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">@dataclass(kw_only=True)</code>
+        </div>
+        <div class="chip-in min-w-0 flex items-center gap-3 border-l-2 border-ink/15 dark:border-paper/15 pl-3 py-1.5" style="border-left-color: #D9A62E">
+          <span class="font-mono text-xs w-20 shrink-0 text-ink/60 dark:text-paper/60">Pydantic</span>
+          <code class="font-mono text-xs text-ink/80 dark:text-paper/80 truncate flex-1 min-w-0">class Pet(BaseModel):</code>
         </div>
       </div>
     </div>
@@ -310,14 +320,14 @@
           back, right in your browser. The playground runs the same Go engine as the CLI,
           compiled to WebAssembly, so nothing you paste here ever touches a server.
           There's no Java runtime to install, no Docker image to pull, no per-language
-          toolchain to set up first. Just paste a spec and generate all five targets in one
+          toolchain to set up first. Just paste a spec and generate all seven targets in one
           run, whether you're kicking the tires or wiring it into a real project.
         </p>
       </div>
 
       <div class="flex flex-col gap-4">
         <h2 class="font-mono text-2xl font-medium tracking-tight">Supported targets</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #3E7BD9">
             <span class="w-2.5 h-2.5 bg-lang-ts"></span>
             <span class="font-mono font-medium">TypeScript</span>
@@ -342,6 +352,16 @@
             <span class="w-2.5 h-2.5 bg-lang-dart"></span>
             <span class="font-mono font-medium">Dart</span>
             <span class="text-sm text-ink/60 dark:text-paper/60">classes</span>
+          </div>
+          <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #3FA66B">
+            <span class="w-2.5 h-2.5 bg-lang-python"></span>
+            <span class="font-mono font-medium">Python</span>
+            <span class="text-sm text-ink/60 dark:text-paper/60">dataclasses</span>
+          </div>
+          <div class="border border-ink/15 dark:border-paper/15 border-l-2 p-4 flex flex-col gap-2" style="border-left-color: #D9A62E">
+            <span class="w-2.5 h-2.5 bg-lang-pydantic"></span>
+            <span class="font-mono font-medium">Pydantic</span>
+            <span class="text-sm text-ink/60 dark:text-paper/60">validated models</span>
           </div>
         </div>
       </div>
@@ -413,8 +433,9 @@
             <h3 class="font-medium">What languages can OpenAPI2Code generate?</h3>
             <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
               TypeScript interfaces, Zod runtime validation schemas, Swift
-              Codable structs, Kotlin data classes, and Dart classes. All
-              from the same spec, and you can generate more than one at a time.
+              Codable structs, Kotlin data classes, Dart classes, Python
+              dataclasses, and Pydantic BaseModel classes. All from the
+              same spec, and you can generate more than one at a time.
             </p>
           </div>
           <div>
@@ -436,12 +457,14 @@
             <h3 class="font-medium">How do you know the generated code actually works?</h3>
             <p class="text-ink/70 dark:text-paper/70 leading-relaxed">
               The test suite runs real generated output through the actual
-              compiler for each target (<code class="font-mono text-sm">tsc</code>,
+              compiler or interpreter for each target (<code class="font-mono text-sm">tsc</code>,
               <code class="font-mono text-sm">swiftc</code>,
               <code class="font-mono text-sm">kotlinc</code>,
-              <code class="font-mono text-sm">dart</code>) instead of just
-              comparing it as text. Enums also keep their real type now, so
-              a boolean or integer enum won't get flattened into a string.
+              <code class="font-mono text-sm">dart</code>,
+              <code class="font-mono text-sm">python3</code> — including a
+              real Pydantic import check) instead of just comparing it as
+              text. Enums also keep their real type now, so a boolean or
+              integer enum won't get flattened into a string.
             </p>
           </div>
         </div>

@@ -90,6 +90,8 @@
   --color-lang-swift: #f0684a;
   --color-lang-kotlin: #8259e8;
   --color-lang-dart: #17a7e0;
+  --color-lang-python: #3fa66b;
+  --color-lang-pydantic: #d9a62e;
 
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;

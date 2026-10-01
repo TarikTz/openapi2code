@@ -11,6 +11,8 @@ OpenAPI2Code generates:
 - Swift Codable structs
 - Kotlin data classes
 - Dart classes
+- Python dataclasses
+- Pydantic BaseModel classes
 
 All targets are generated from the same intermediate representation of the
 parsed spec, so output is structurally consistent across languages. More
@@ -30,6 +32,6 @@ than one target can be generated in a single run.
 
 - [Playground](https://openapi2code.com/): paste or upload a spec and generate code live, in the browser.
 - [Use cases](https://openapi2code.com/use-cases.html): where OpenAPI2Code fits in a real workflow.
-- [Examples](https://openapi2code.com/examples.html): sample specs and their generated output across all five targets.
+- [Examples](https://openapi2code.com/examples.html): sample specs and their generated output across all seven targets.
 - [Contact](https://openapi2code.com/contact.html): issue tracker and email contact.
 - [Source code and releases](https://github.com/TarikTz/openapi2code): CLI binaries, source, and issue tracker on GitHub.
