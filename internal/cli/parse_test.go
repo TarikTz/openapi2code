@@ -61,7 +61,7 @@ func TestParseArgs_TargetZod(t *testing.T) {
 }
 
 func TestParseArgs_UnsupportedTarget(t *testing.T) {
-	_, err := parseArgs([]string{"pull", "spec.json", "--target", "python", "--output", "./out"})
+	_, err := parseArgs([]string{"pull", "spec.json", "--target", "java", "--output", "./out"})
 	if err == nil {
 		t.Fatal("expected error for unsupported target")
 	}
@@ -110,11 +110,11 @@ func TestParseArgs_MultiTargetDuplicateRejected(t *testing.T) {
 }
 
 func TestParseArgs_MultiTargetUnsupportedMemberRejected(t *testing.T) {
-	_, err := parseArgs([]string{"pull", "spec.json", "--target", "ts,python", "--output", "./out"})
+	_, err := parseArgs([]string{"pull", "spec.json", "--target", "ts,java", "--output", "./out"})
 	if err == nil {
 		t.Fatal("expected error for an unsupported target within a multi-target list")
 	}
-	if !strings.Contains(err.Error(), `"python"`) {
+	if !strings.Contains(err.Error(), `"java"`) {
 		t.Errorf("expected the error to name the specific unsupported member, got: %v", err)
 	}
 }
@@ -144,5 +144,15 @@ func TestParseArgs_HelpAfterSource(t *testing.T) {
 	}
 	if err.Error() == "" {
 		t.Error("expected non-empty help text")
+	}
+}
+
+func TestParseArgs_PythonAndPydanticTargets(t *testing.T) {
+	opts, err := parseArgs([]string{"pull", "spec.json", "--target", "python,pydantic", "--output", "./out"})
+	if err != nil {
+		t.Fatalf("parseArgs: %v", err)
+	}
+	if opts.Target != "python,pydantic" {
+		t.Errorf("got Target %q, want python,pydantic", opts.Target)
 	}
 }

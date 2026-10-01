@@ -34,7 +34,7 @@ type helpError struct {
 func (e *helpError) Error() string { return e.text }
 func (e *helpError) Unwrap() error { return errHelp }
 
-const usageLine = "usage: openapi2code pull <source> [--target <ts|zod|swift|kotlin|dart>[,<target>...]] (--output <dir> | --out-file <path>)"
+const usageLine = "usage: openapi2code pull <source> [--target <ts|zod|swift|kotlin|dart|python|pydantic>[,<target>...]] (--output <dir> | --out-file <path>)"
 
 // splitTargets splits a --target value on commas into its individual
 // target names, trimming surrounding whitespace from each — the single
@@ -70,7 +70,7 @@ func parseArgs(args []string) (Options, error) {
 	// way anything leaves this function is through the returned error,
 	// which Run then writes to its own injected writer exactly once.
 	fs.SetOutput(io.Discard)
-	target := fs.String("target", "ts", `generation target(s): "ts", "zod", "swift", "kotlin", or "dart" — comma-separated for more than one, e.g. "ts,zod"`)
+	target := fs.String("target", "ts", `generation target(s): "ts", "zod", "swift", "kotlin", "dart", "python", or "pydantic" — comma-separated for more than one, e.g. "ts,zod"`)
 	outDir := fs.String("output", "", "write modular output (one file per model + barrel index.ts) into this directory")
 	outFile := fs.String("out-file", "", "write monolithic output to this single file")
 
@@ -98,8 +98,8 @@ func parseArgs(args []string) (Options, error) {
 	targets := splitTargets(*target)
 	seen := make(map[string]bool, len(targets))
 	for _, t := range targets {
-		if t != "ts" && t != "zod" && t != "swift" && t != "kotlin" && t != "dart" {
-			return Options{}, fmt.Errorf("target %q not yet implemented (only \"ts\", \"zod\", \"swift\", \"kotlin\", and \"dart\" are currently supported)", t)
+		if t != "ts" && t != "zod" && t != "swift" && t != "kotlin" && t != "dart" && t != "python" && t != "pydantic" {
+			return Options{}, fmt.Errorf("target %q not yet implemented (only \"ts\", \"zod\", \"swift\", \"kotlin\", \"dart\", \"python\", and \"pydantic\" are currently supported)", t)
 		}
 		if seen[t] {
 			return Options{}, fmt.Errorf("target %q specified more than once in --target %q", t, *target)

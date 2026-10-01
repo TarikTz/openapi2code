@@ -277,3 +277,49 @@ func TestRun_EndToEndZod(t *testing.T) {
 		t.Errorf("expected PetSchema, got:\n%s", content)
 	}
 }
+
+func TestRun_EndToEndPython(t *testing.T) {
+	dir := t.TempDir()
+	specPath := filepath.Join(dir, "spec.json")
+	if err := os.WriteFile(specPath, []byte(fixtureSpec), 0644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+	outPath := filepath.Join(dir, "out.py")
+
+	var stderr bytes.Buffer
+	code := Run([]string{"pull", specPath, "--target", "python", "--out-file", outPath}, strings.NewReader(""), &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d, stderr: %s", code, stderr.String())
+	}
+
+	content, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+	if !strings.Contains(string(content), "@dataclass") {
+		t.Errorf("expected @dataclass in output:\n%s", content)
+	}
+}
+
+func TestRun_EndToEndPydantic(t *testing.T) {
+	dir := t.TempDir()
+	specPath := filepath.Join(dir, "spec.json")
+	if err := os.WriteFile(specPath, []byte(fixtureSpec), 0644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+	outPath := filepath.Join(dir, "out.py")
+
+	var stderr bytes.Buffer
+	code := Run([]string{"pull", specPath, "--target", "pydantic", "--out-file", outPath}, strings.NewReader(""), &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d, stderr: %s", code, stderr.String())
+	}
+
+	content, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+	if !strings.Contains(string(content), "from pydantic import BaseModel") {
+		t.Errorf("expected pydantic import in output:\n%s", content)
+	}
+}

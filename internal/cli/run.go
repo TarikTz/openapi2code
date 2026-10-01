@@ -58,6 +58,10 @@ func Run(args []string, stdin io.Reader, stderr io.Writer) int {
 			out, err = engine.GenerateKotlin(doc, engine.KotlinOptions{Modular: modular})
 		case "dart":
 			out, err = engine.GenerateDart(doc, engine.DartOptions{Modular: modular})
+		case "python":
+			out, err = engine.GeneratePython(doc, engine.PythonOptions{Modular: modular})
+		case "pydantic":
+			out, err = engine.GeneratePydantic(doc, engine.PydanticOptions{Modular: modular})
 		default:
 			out, err = engine.GenerateTS(doc, engine.TSOptions{Modular: modular})
 		}
